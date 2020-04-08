@@ -1,0 +1,7 @@
+data/*
+logs/*
+gtp.log
+
+
+**/.DS_Store
+.idea
