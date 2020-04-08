@@ -5,7 +5,8 @@ import cv2
 from datetime import datetime
 
 from gtp.talker import GTPFacade
-from gomrade.game_logic import GomradeGame, Visualizer
+from gomrade.gomrade_game import GomradeGame
+from gomrade.state_visualizer import StateVisualizer
 from utils.dynamic_import import dynamic_import
 
 
@@ -65,7 +66,7 @@ if __name__ == '__main__':
     be.dump(exp_dir=exp_dir)
     bsc.dump(exp_dir=exp_dir)
 
-    vis = Visualizer()
+    vis = StateVisualizer()
 
     gl = GomradeGame(config=config, engine=engine, board_extractor=be, board_classifier=bsc, visualizer=vis)
     gl.run(cap, exp_dir)

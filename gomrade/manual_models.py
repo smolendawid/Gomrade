@@ -5,7 +5,7 @@ import os
 import yaml
 
 from gomrade.transformations import order_points
-from utils.images_utils import avg_images, get_pt_color, fill_buffer
+from gomrade.images_utils import avg_images, get_pt_color, fill_buffer
 from gomrade.classifier import closest_color
 from gomrade.gomrade_model import GomradeModel
 
