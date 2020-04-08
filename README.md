@@ -1,4 +1,4 @@
-#These are initial commits to this repo so beware it's a huge todo that may not work yet.
+# These are initial commits to this repo so beware it's a huge todo that may not work yet.
 
 ## Intro 
 
@@ -32,7 +32,7 @@ works on your computer
 - Navigate to downloaded repository in console and run `python3 -m pip install -r requirements.txt`
 - Run `python3 run.py`
 
-Contact smolendawid@gmail.com if you need help
+Contact if you need help: my username at gmail.com 
 
 * if you played at least a few moves with the Gomrade, please send the images and text files generated in
 data/ directory. It will GREATLY help with the development od the Gomrade
@@ -42,8 +42,7 @@ Even more:
 - To play with different engines, you may try to edit lines in `run.py`
 
 
-
-## For programmers
+## For developers
 
 ### Comments
 
