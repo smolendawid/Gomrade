@@ -5,7 +5,7 @@ import warnings
 
 from gomrade.images_utils import avg_images, fill_buffer
 from gomrade.save_game_state import save_game_state
-from gomrade.action_interpreters import BoardStateInterpreter
+from gomrade.action_interpreters import TimeBoardStateInterpreter
 from gomrade.game_trackers import GameTracker
 
 
@@ -54,7 +54,7 @@ class GomradeGame:
         self.visualizer = visualizer
         self.board_extractor = board_extractor
         self.board_classifier = board_classifier
-        self.interpreter = BoardStateInterpreter(config=config)
+        self.interpreter = TimeBoardStateInterpreter(config=config)
         self.game_tracker = GameTracker(tmp_path='data/tmp.txt')
 
         self.move = Move(first_move=config['ai_color'])
@@ -111,7 +111,7 @@ class GomradeGame:
 
                 self.move.switch()
                 self._execute_move(self.engine, stones_state)
-            print(time.time() - start)
+            # print(time.time() - start)
 
         # todo unreachable code..
         cap.release()

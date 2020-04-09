@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 
@@ -51,6 +53,39 @@ class BoardStateInterpreter:
         return is_move
 
 
-class TimeActionInterpreter:
+class TimeBoardStateInterpreter:
     def __init__(self, config):
-        pass
+        self.prev_stones_state = np.chararray((config['board_size'] * config['board_size'],))
+        self.minimal_duration = config['minimal_duration_time']
+        self.move_acceptance = config['move_acceptance_time']
+        self.curr_dur = 0.
+        self.last_move_last_seen = time.time()
+        self.triggered = False
+
+    def _check_state_the_same(self, stones_state):
+        is_same = False
+        if len(stones_state) == sum([1 for i, j in zip(stones_state, self.prev_stones_state) if i == j]):
+            is_same = True
+        return is_same
+
+    def interpret(self, stones_state, color_to_play):
+        is_move = False
+        curr = time.time()
+
+        is_state_same = self._check_state_the_same(stones_state)
+
+        if is_state_same:
+            self.last_move_last_seen = curr
+        else:
+            if curr - self.last_move_last_seen > self.minimal_duration:
+                # Update state
+                self.prev_stones_state = stones_state
+                self.triggered = True
+
+        if curr - self.last_move_last_seen > self.move_acceptance:
+            if self.triggered:
+                self.last_move_last_seen = curr
+                self.triggered = False
+                is_move = True
+
+        return is_move
