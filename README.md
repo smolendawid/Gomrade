@@ -8,7 +8,6 @@ Gomrade analyses the board state from an image using a computer camera and answe
 a synthesized voice. 
 
 The example video of Gomrade in action can be found here:
-
 https://
 
 
@@ -18,30 +17,21 @@ The current state:
 - Works with KataGo 1.3.5.
 - Needs some setup clicking before running each game
 - The camera needs to stand still and the conditions (light) can't change - after a change, it's possible to continue 
-the game after another setup
-- Makes some errors (but ok for patient ppl)
+the game after another initial setup
+- Makes some errors (but it's good enough with minimal patience)
 - Code is ready to extend
 
+
+## Manifest
+
+We believe that playing GO is a peculiar, wonderful experience on the border of art, science and sport.
+Communing with a wooden board and glass stones allows you for deeper feel of the mysticism of Go.
+
+Therefore playing against Gomrade can be a good substitute for a real Go encounter.
+
+
 ## For GO players 
-At the moment setting up the repository requires a minimal programming initiative.
-- Install KataGo on your computer. Make sure something like
-`katago gtp -config $(brew list --verbose katago | grep gtp) -model $(brew list --verbose katago | grep .gz | head -1)`
-works on your computer
-- Install Python 3.6 or newer on your computer. Check something like:
-`python3 -V`
-- Navigate to the downloaded repository in the console and run `python3 -m pip install -r requirements.txt`
-- Run `python3 utils/synthetize_moves.py`
-- Run `python3 run.py`
-
-If you need help, you can contact me: my username at gmail.com 
-
-__If you played at least a few moves with the Gomrade, please send the images and text files generated in `data/`
-directory. It will GREATLY help with the development od the Gomrade__
-
-#### Even more:
-- To run with different parameters (KataGo level, color, responding time, board size) edit `config.yml`
-- To play with different engines, you may try to edit lines in `run.py`
-
+If you want to play against Gomrade, check HOWTOPLAY.md
 
 ## For developers
 
@@ -57,20 +47,24 @@ in terms of stones accuracy
 - Robustness to variable conditions
 
 ### Machine learning
-At the moment there's no Machine Learning, although many attempts have been made. The main purpose of the program is to collect the data
-and automatically create the labels using game logic in controlled conditions.
+At the moment there's no Machine Learning, although many attempts have been made. 
+
+AT THE MOMENT he main purpose of the program is to collect the data and automatically create the labels in 
+the controlled environmental conditions.
+
+It happens in the background during the casual GO game.
 
 ### Code structure
 
-We believe the playing with Gomrade can be a 
+todo
 
 
-## Complexity illustration
+### Complexity illustration
 
-You can find the examples of variance in the data in `sample_data/`
+You can find the examples of variance in the data in `data/sample_data/`
 
 
-## Future plans
+### Future plans
 
 * [ ] make sure it can work with other AI engines
 * [ ] add the last move from config to start the game at any point
