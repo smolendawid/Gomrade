@@ -53,6 +53,11 @@ class ManualBoardStateClassifier(GomradeModel):
         self.x_grid = None
         self.y_grid = None
 
+    def _load_from_state(self, path):
+        with open(path) as f:
+            data = yaml.load(f)
+        self.__dict__ = data
+
     def _get_pt_area(self, frame, i, j):
         # c = classify_brightness(res[i, j, :], dominant_color)
         start_i = i - PTPXL
@@ -72,10 +77,15 @@ class ManualBoardStateClassifier(GomradeModel):
         return frame[start_i: stop_i, start_j: stop_j, :]
 
     def dump(self, exp_dir):
-        with open(os.path.join(exp_dir, 'board_color_data.yml'), 'w') as f:
-            yaml.dump(self.__dict__, f, default_flow_style=False)
+        with open(os.path.join(exp_dir, 'board_state_classifier_state.yml'), 'w') as f:
+            serialized = dict((key, value) for key, value in self.__dict__.items())
+            yaml.safe_dump(serialized, f)
 
     def fit(self, config, cap):
+
+        if config['board_state_classifier_state'] is not None:
+            self._load_from_state(config['board_state_classifier_state'])
+            return self
 
         num_neighbours = config['board_state_classifier']['num_neighbours']
 
@@ -89,23 +99,19 @@ class ManualBoardStateClassifier(GomradeModel):
         buf = fill_buffer(cap, config["buffer_size"])
         frame = avg_images(buf)
 
-        if config['board_analysis'] is not None:
-            raise NotImplementedError()
-            black_colors = [content[0], content[1]]
-        else:
-            black_colors = get_pt_color(frame, pts_clicks[:2], num_neighbours=num_neighbours)
-            white_colors = get_pt_color(frame, pts_clicks[:4], num_neighbours=num_neighbours)
-            board_colors = get_pt_color(frame, pts_clicks[4:], num_neighbours=num_neighbours)
+        black_colors = get_pt_color(frame, pts_clicks[:2], num_neighbours=num_neighbours)
+        white_colors = get_pt_color(frame, pts_clicks[:4], num_neighbours=num_neighbours)
+        board_colors = get_pt_color(frame, pts_clicks[4:], num_neighbours=num_neighbours)
 
         # Create grid coords
         x_grid = np.floor(np.linspace(0, self.width - 1, config['board_size'])).astype(int)
         y_grid = np.floor(np.linspace(0, self.height - 1, config['board_size'])).astype(int)
 
-        self.black_colors = black_colors
-        self.white_colors = white_colors
-        self.board_colors = board_colors
-        self.x_grid = x_grid
-        self.y_grid = y_grid
+        self.black_colors = [[float(p) for p in c] for c in black_colors]
+        self.white_colors = [[float(p) for p in c] for c in white_colors]
+        self.board_colors = [[float(p) for p in c]for c in board_colors]
+        self.x_grid = [int(x) for x in x_grid]
+        self.y_grid = [int(y) for y in y_grid]
 
     def read_board(self, frame):
         # frame = cv2.blur(frame, ksize=(10, 10))
@@ -132,11 +138,23 @@ class ManualBoardExtractor(GomradeModel):
         self.width = None
         self.height = None
 
+    def _load_from_state(self, path):
+        with open(path) as f:
+            data = yaml.load(f)
+        self.__dict__ = data
+        self.M = np.array(self.M)
+
     def dump(self, exp_dir):
-        with open(os.path.join(exp_dir, 'board_corners_data.yml'), 'w') as f:
-            yaml.dump(self.__dict__, f, default_flow_style=False)
+        with open(os.path.join(exp_dir, 'board_extractor.yml'), 'w') as f:
+            serialized = dict((key, value) for key, value in self.__dict__.items())
+            serialized['M'] = [list(float(f) for f in m) for m in serialized['M']]
+            yaml.safe_dump(serialized, f)
 
     def fit(self, config, cap):
+
+        if config['board_extractor_state'] is not None:
+            self._load_from_state(config['board_extractor_state'])
+            return self.width, self.height
 
         clicker = ImageClicker(clicks=4)
         pts_clicks = clicker.get_points_of_interest(cap, image_title='Click corners: left upper, right upper, '
@@ -148,7 +166,7 @@ class ManualBoardExtractor(GomradeModel):
         self.M = M
         self.max_width = max_width
         self.max_height = max_height
-        self.pts_clicks = pts_clicks
+        self.pts_clicks = [list(p) for p in pts_clicks]
 
         transformed_frame = self.read_board(frame)
 

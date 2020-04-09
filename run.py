@@ -1,3 +1,4 @@
+import argparse
 import os
 import yaml
 import logging
@@ -48,9 +49,18 @@ def setup_engine(config):
     return engine
 
 
+def load_config():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default='configs/default.yml')
+    args = parser.parse_args()
+
+    return yaml.load(open(args.config, 'r'))
+
+
 if __name__ == '__main__':
 
-    config = yaml.load(open('config.yml', 'r'))
+    config = load_config()
+
     exp_dir = setup_log()
 
     engine = setup_engine(config=config)

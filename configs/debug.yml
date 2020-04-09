@@ -1,0 +1,27 @@
+# Game
+board_size: 9
+komi: 6.5
+ai_color: 'white'
+
+# Dynamics
+artifact_limit: 8
+move_limit: 20
+accept_limit: 12
+minimal_duration_time: 2
+move_acceptance_time: 4
+
+# Images processing
+buffer_size: 4
+
+# Board understanding
+board_extractor:
+  name: gomrade.manual_models:ManualBoardExtractor
+board_state_classifier:
+  name: gomrade.manual_models:ManualBoardStateClassifier
+  num_neighbours: 5
+
+
+# Loading game parameters
+lastmove:
+board_extractor_state: data/board_extractor.yml
+board_state_classifier_state: data/board_state_classifier.yml
