@@ -23,5 +23,5 @@ board_state_classifier:
 
 # Loading game parameters
 lastmove:
-board_extractor_state: data/board_extractor.yml
-board_state_classifier_state: data/board_state_classifier.yml
+board_extractor_state: data/board_extractor_state.yml
+board_state_classifier_state: data/board_state_classifier_state.yml

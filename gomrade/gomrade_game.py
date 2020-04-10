@@ -2,21 +2,23 @@ import subprocess
 import time
 import cv2
 import warnings
+import logging
 
 from gomrade.images_utils import avg_images, fill_buffer
 from gomrade.save_game_state import save_game_state
 from gomrade.action_interpreters import TimeBoardStateInterpreter
 from gomrade.game_trackers import GameTracker
+from gomrade.gomrade_model import GomradeModel
 
 
-def play_wave(m):
-    """ Move value. Can be GO board coordinates, 'resign', or 'pass'"""
+def play_wav(m):
+    """ Move value. Can be GO board coordinates, 'resign', and 'pass'"""
     # todo afplay is of MAC
     # todo mp3 is hard to play in python
     try:
-        subprocess.call(["afplay", f'data/synthetized_moves/{m}.mp3'])
+        subprocess.call(["afplay", f'data/synthesized_moves/{m}.wav'])
     except ResourceWarning:
-        warnings.warn("Unable to play sound {}.mp3".format(m))
+        warnings.warn("Unable to play sound {}.wav".format(m))
 
 
 class Move:
@@ -35,16 +37,16 @@ class Move:
 
 
 class GomradeGame:
-    def __init__(self, config, engine, board_extractor, board_classifier, visualizer):
+    def __init__(self, config: dict, engine, board_extractor: GomradeModel, board_classifier: GomradeModel, visualizer):
         """
         The main class of the project. It uses objects to analyse crop board, classify it, and, considering defined
         logic, communicate with GTP engine.
 
-        :param config:
-        :param engine:
+        :param config: .yml as in example config
+        :param engine: GTP engine
         :param board_extractor:
         :param board_classifier:
-        :param visualizer:
+        :param visualizer: Object that will visualize the current interpretation and understanding of the board
         """
 
         self.buffer_size = config['buffer_size']
@@ -63,30 +65,34 @@ class GomradeGame:
 
     def _execute_move(self, engine, stones_state):
         if self.move.c == 'black':
-            print('Asking for a move')
+            logging.info('Asking for a move')
+
             engine.clear_board()
             self.game_tracker.replay_position(stones_state)
-            # engine.loadsgf(path='data/tmp.txt')
+            engine.loadsgf(path='data/tmp.txt')
             engine.showboard()
-            # m = engine.play()
-            play_wave('A1')
+            m = engine.play(self.move.c)
+            play_wav('A1')
 
         if self.move.c == 'white':
-            play_wave('move')
-            # engine.clear_board()
-            # engine.loadsgf(path='data/tmp.txt')
+            logging.info('Doing nothing')
+
+            play_wav('move')
+            engine.clear_board()
+            self.game_tracker.replay_position(stones_state)
+            engine.loadsgf(path='data/tmp.txt')
             engine.showboard()
-            print('Doing nothing')
 
     def run(self, cap, exp_dir, verbose=False):
 
         buf_i = 0
 
-        # fill buffer
+        # fill images buffer
         buf = fill_buffer(cap, self.buffer_size)
 
         while True:
             start = time.time()
+
             # Capture frame-by-frame
             ret, frame = cap.read()
 
@@ -102,11 +108,12 @@ class GomradeGame:
             if verbose:
                 self.visualizer.show_cam(frame)
 
-            # Decide what with the understood board
+            # Decide what to do with the understood board
             is_move = self.interpreter.interpret(stones_state, self.move.c)
 
             if is_move:
                 save_game_state(frame, stones_state, board_size=self.board_size, exp_dir=exp_dir, name=self.image_ind)
+
                 self.image_ind += 1
 
                 self.move.switch()

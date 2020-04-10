@@ -62,7 +62,6 @@ if __name__ == '__main__':
     config = load_config()
 
     exp_dir = setup_log()
-
     engine = setup_engine(config=config)
 
     cap = cv2.VideoCapture(0)

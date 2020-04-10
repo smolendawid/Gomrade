@@ -1,3 +1,5 @@
 pyyaml
 numpy
 opencv-python
+sgfmill
+pytest

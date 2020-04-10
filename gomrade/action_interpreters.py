@@ -1,3 +1,4 @@
+import logging
 import time
 
 import numpy as np
@@ -47,7 +48,7 @@ class BoardStateInterpreter:
 
                 self.num_of_the_same = 0
                 self.trigger = False
-                print("MOVE MADE")
+                logging.info("MOVE MADE")
                 is_move = True
 
         return is_move

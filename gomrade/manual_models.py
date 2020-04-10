@@ -89,10 +89,6 @@ class ManualBoardStateClassifier(GomradeModel):
 
         num_neighbours = config['board_state_classifier']['num_neighbours']
 
-        if config["board_analysis"] is not None:
-            logging.info('Using saved board analysis')
-            return config["board_analysis"]
-
         clicker = ImageClicker(clicks=10)
         pts_clicks = clicker.get_points_of_interest(cap, image_title='2 black, 2 white, 4 board clicks')
 
@@ -145,7 +141,7 @@ class ManualBoardExtractor(GomradeModel):
         self.M = np.array(self.M)
 
     def dump(self, exp_dir):
-        with open(os.path.join(exp_dir, 'board_extractor.yml'), 'w') as f:
+        with open(os.path.join(exp_dir, 'board_extractor_state.yml'), 'w') as f:
             serialized = dict((key, value) for key, value in self.__dict__.items())
             serialized['M'] = [list(float(f) for f in m) for m in serialized['M']]
             yaml.safe_dump(serialized, f)
@@ -176,6 +172,7 @@ class ManualBoardExtractor(GomradeModel):
         self.width = width
         self.height = height
 
+        # todo fit should not return anything
         return width, height
 
     def read_board(self, frame):
