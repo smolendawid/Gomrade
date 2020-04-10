@@ -57,7 +57,9 @@ class GomradeGame:
         self.board_extractor = board_extractor
         self.board_classifier = board_classifier
         self.interpreter = TimeBoardStateInterpreter(config=config)
-        self.game_tracker = GameTracker(tmp_path='data/tmp.txt')
+        self.game_tracker = GameTracker()
+
+        self.game_tracker.create_empty(self.board_size, komi=config['komi'])
 
         self.move = Move(first_move=config['ai_color'])
 
@@ -69,10 +71,14 @@ class GomradeGame:
 
             engine.clear_board()
             self.game_tracker.replay_position(stones_state)
-            engine.loadsgf(path='data/tmp.txt')
+            self.game_tracker.save_game('data/tmp.txt')
+
+            engine.load_sgf(path='data/tmp.txt')
             engine.showboard()
-            m = engine.play(self.move.c)
-            play_wav('A1')
+
+            vertex = engine.genmove(self.move.c)
+
+            play_wav(vertex)
 
         if self.move.c == 'white':
             logging.info('Doing nothing')
@@ -80,7 +86,7 @@ class GomradeGame:
             play_wav('move')
             engine.clear_board()
             self.game_tracker.replay_position(stones_state)
-            engine.loadsgf(path='data/tmp.txt')
+            engine.load_sgf(path='data/tmp.txt')
             engine.showboard()
 
     def run(self, cap, exp_dir, verbose=False):

@@ -61,7 +61,7 @@ class TimeBoardStateInterpreter:
         self.move_acceptance = config['move_acceptance_time']
         self.curr_dur = 0.
         self.last_move_last_seen = time.time()
-        self.triggered = False
+        self.triggered = True
 
     def _check_state_the_same(self, stones_state):
         is_same = False

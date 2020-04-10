@@ -1,12 +1,22 @@
-from sgfmill import sgf
+from sgfmill import sgf, ascii_boards, boards
 
 
 class GameTracker:
-    def __init__(self, tmp_path):
-        self.tmp_path = tmp_path
+    def __init__(self):
+        self.game = None
+        self.board_size = None
 
     def many_stones_added(self):
         pass
+
+    def load_game(self, path):
+        with open(path, 'r') as f:
+            game_str = f.read()
+        self.game = sgf.Sgf_game.from_string(game_str)
+
+    def save_game(self, path):
+        with open(path, 'w') as f:
+            f.write(self.to_string())
 
     def wrong_color_added(self):
         pass
@@ -24,24 +34,44 @@ class GameTracker:
         pass
 
     def to_string(self):
-        pass
+        return self.game.serialise().decode("utf-8")
+
+    def create_empty(self, size, komi):
+        self.game = sgf.Sgf_game(size=size, encoding="UTF-8")
+        self.board_size = size
+        root_node = self.game.get_root()
+        root_node.set("KM", komi)
+
+    def vanilla_parse(self, stones_state):
+        tmp = 'b'
+        for row in range(self.board_size):
+            for col in range(self.board_size):
+                c = stones_state[row*self.board_size + col]
+                if c == '.':
+                    continue
+                tmp = 'w' if tmp == 'b' else 'b'
+                node = self.game.extend_main_sequence()
+                node.set_move(tmp, (row, col))
+        print([node.get_move() for node in self.game.get_main_sequence()])
+
+
 
     def replay_position(self, stones_state):
-        with open(self.tmp_path, 'r') as f:
-            game_str = f.read()
-        game = sgf.Sgf_game.from_string(game_str)
-        root_node = game.get_root()
-        a = [node.get_move() for node in game.get_main_sequence()]
 
-        for i in stones_state:
-            pass
-
-        self.update_sgf()
-
-        with open(self.tmp_path, "w") as f:
-            f.write(self.to_string(game))
+        self.vanilla_parse(stones_state)
+        # node = self.game.extend_main_sequence()
+        # node.set_move('b', (2, 3))
 
 
 if __name__ == '__main__':
-    gt = GameTracker('/Users/dasm/Downloads/Xie_Yimin-Fujisawa_Rina.sgf')
-    gt.replay_position(stones_state='....................'*19)
+    root = '/Users/dasm/projects/Gomrade/'
+    # in_path = root + 'data/Xie_Yimin-Fujisawa_Rina.sgf', out_path = root + 'data/out.txt'
+
+    gt = GameTracker()
+    gt.create_empty(size=19, komi=6.5)
+
+    stones_state = list('....................' * 19)
+    stones_state[16] = 'b'
+    stones_state[240] = 'w'
+
+    gt.replay_position(''.join(stones_state))
