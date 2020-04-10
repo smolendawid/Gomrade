@@ -6,7 +6,7 @@ LANG = 'en'
 
 if __name__ == '__main__':
 
-    root = '../data/synthetized_moves/'
+    root = '../data/synthesized_moves/'
 
     tts = gTTS(text='resign', lang='en')
     tts.save(root + "resign.wav")
