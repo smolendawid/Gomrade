@@ -1,4 +1,3 @@
-import logging
 import cv2
 import numpy as np
 import os
@@ -7,8 +6,8 @@ import yaml
 from gomrade.state_utils import project_stones_state
 from gomrade.transformations import order_points
 from gomrade.images_utils import avg_images, get_pt_color, fill_buffer
-from gomrade.classifier import closest_color
-from gomrade.gomrade_model import GomradeModel
+from gomrade.classifiers.classifier import closest_color
+from gomrade.classifiers.gomrade_model import GomradeModel
 
 # todo should it be hardcoded here?
 NUM_BLACK_POINTS = 2

@@ -8,6 +8,7 @@ class StateVisualizer:
     def show_cam(self, frame):
         res = cv2.flip(frame, -1)
         cv2.imshow('frame', res)
+        cv2.waitKey(1)
 
     def plot_board(self, frame):
         raise NotImplementedError

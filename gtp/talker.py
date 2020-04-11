@@ -2,7 +2,6 @@
 from subprocess import Popen, PIPE
 
 from gtp.gtp import parse_vertex, gtp_move, gtp_color
-from gtp.gtp import BLACK, WHITE, PASS
 
 
 class GTPSubProcess(object):
