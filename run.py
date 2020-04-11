@@ -11,18 +11,6 @@ from gomrade.state_visualizer import StateVisualizer
 from utils.dynamic_import import dynamic_import
 
 
-GNUGO = ["gnugo", "--mode", "gtp"]
-GNUGO_LEVEL_ONE = ["gnugo", "--mode", "gtp", "--level", "1"]
-GNUGO_MONTE_CARLO = ["gnugo", "--mode", "gtp", "--monte-carlo"]
-
-KATAGO = ["katago", "gtp", "-config", "/usr/local/Cellar/katago/1.3.5/share/katago/configs/gtp_example.cfg", "-model",
-          "/usr/local/Cellar/katago/1.3.5/share/katago/g170-b40c256x2-s2383550464-d716628997.bin.gz"]
-# todo make it work with best model despite of the localisation
-# KATAGO = ["katago gtp -config $(brew list --verbose katago | grep gtp) "
-#           "-model $(brew list --verbose katago | grep .gz | head -1)"]
-# katago gtp -config $(brew list --verbose katago | grep gtp) -model $(brew list --verbose katago | grep .gz | head -1)
-
-
 def setup_log():
     now = datetime.now()
     current_time = now.strftime("%y_%m_%d_%H_%M_%S")
@@ -34,17 +22,16 @@ def setup_log():
 
 def setup_engine(config):
 
-    engine = GTPFacade(label='game', args=KATAGO)
+    # GNUGO_LEVEL_ONE = ["gnugo", "--mode", "gtp", "--level", "1"]
+    # katago gtp -config $(brew list --verbose katago | grep gtp) -model $(brew list --verbose katago | grep .gz | head -1)
+
+    engine = GTPFacade(label='game', args=config['engine_command'])
 
     engine.name()
     engine.version()
 
     engine.boardsize(config['board_size'])
-
     engine.komi(config['komi'])
-
-    engine.clear_board()
-    engine.showboard()
 
     return engine
 

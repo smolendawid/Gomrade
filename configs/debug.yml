@@ -1,5 +1,5 @@
 # Game
-board_size: 9
+board_size: 19
 komi: 6.5
 ai_color: 'white'
 
@@ -7,8 +7,8 @@ ai_color: 'white'
 artifact_limit: 8
 move_limit: 20
 accept_limit: 12
-minimal_duration_time: 2
-move_acceptance_time: 4
+minimal_duration_time: 1
+move_acceptance_time: 2
 
 # Images processing
 buffer_size: 4
@@ -21,7 +21,15 @@ board_state_classifier:
   num_neighbours: 5
 
 
+# Engine
+engine_command: ["katago", "gtp",
+                 "-config", "/usr/local/Cellar/katago/1.3.5/share/katago/configs/gtp_example.cfg",
+                 "-model", "/usr/local/Cellar/katago/1.3.5/share/katago/g170-b40c256x2-s2383550464-d716628997.bin.gz"]
+
+
 # Loading game parameters
 lastmove:
+#board_extractor_state:
+#board_state_classifier_state:
 board_extractor_state: data/board_extractor_state.yml
 board_state_classifier_state: data/board_state_classifier_state.yml
