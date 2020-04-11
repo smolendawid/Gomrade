@@ -32,9 +32,9 @@ def project_stones_state(stones_state: str, flip: bool = True, rotate: bool = Tr
     if rotate and flip:
         stones_state = stones_state[::-1]
     elif not rotate and flip:
-        # size = int(math.sqrt(len(stones_state)))
-        # stones_state = np.reshape(stones_state, (size, -1))
-        raise NotImplementedError()
+        size = int(math.sqrt(len(stones_state)))
+        stones_state = np.reshape(stones_state, (size, -1)).T[::-1].T.flatten()
+        stones_state = ''.join(list(stones_state))
     elif rotate and not flip:
         size = int(math.sqrt(len(stones_state)))
         stones_state = np.reshape(stones_state, (size, -1))[::-1].flatten()

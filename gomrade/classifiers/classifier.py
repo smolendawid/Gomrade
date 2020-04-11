@@ -5,14 +5,7 @@ def get_mean_color(a):
     return np.median(np.median(a, axis=0), axis=0)
 
 
-def unique_count_app(a):
-    colors, count = np.unique(a.reshape(-1,a.shape[-1]), axis=0, return_counts=True)
-    return colors[count.argmax()]
-
-
 def classify_brightness(rgb_tuple, dominant_color):
-
-    dominant_brightness = sum(dominant_color)
 
     brightness = sum(rgb_tuple)
     if brightness < 80:

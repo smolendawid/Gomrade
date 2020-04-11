@@ -123,8 +123,6 @@ class ManualBoardStateClassifier(GomradeModel):
                 if debug:
                     frame[i-5: i+5, j-5: j+5, :] = 0
 
-        stones_state = project_stones_state(stones_state)
-
         return stones_state, frame
 
 

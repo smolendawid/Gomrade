@@ -51,7 +51,7 @@ class GameTracker:
 
         self.create_empty(self.board_size, self.komi)
 
-        stones_state = project_stones_state(stones_state, flip=False, rotate=True)
+        stones_state = project_stones_state(stones_state, flip=True, rotate=False)
 
         for row in range(self.board_size):
             for col in range(self.board_size):

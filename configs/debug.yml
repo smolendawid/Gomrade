@@ -15,9 +15,9 @@ buffer_size: 4
 
 # Board understanding
 board_extractor:
-  name: gomrade.manual_models:ManualBoardExtractor
+  name: gomrade.classifiers.manual_models:ManualBoardExtractor
 board_state_classifier:
-  name: gomrade.manual_models:ManualBoardStateClassifier
+  name: gomrade.classifiers.manual_models:ManualBoardStateClassifier
   num_neighbours: 5
 
 

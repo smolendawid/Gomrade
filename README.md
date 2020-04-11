@@ -30,7 +30,7 @@ Communing with a wooden board and glass stones allows you for deeper feel of the
 Therefore playing against Gomrade can be a good substitute for a real Go encounter.
 
 
-## For GO players 
+## For Go players 
 If you want to play against Gomrade, check HOWTOPLAY.md
 
 ## For developers
