@@ -1,5 +1,3 @@
-## These are initial commits to this repo so beware it's a huge todo that may not work yet.
-
 ## Intro 
 
 This repository allows you to play GO with strong AI on a real board. 
@@ -8,7 +6,9 @@ Gomrade analyses the board state from an image using a computer camera and answe
 a synthesized voice. 
 
 The example video of Gomrade in action can be found here:
-https://
+todo https://
+
+This is early beta version 0.0.1
 
 
 ## Current state
@@ -52,7 +52,9 @@ At the moment there's no Machine Learning, although many attempts have been made
 AT THE MOMENT he main purpose of the program is to collect the data and automatically create the labels in 
 the controlled environmental conditions.
 
-It happens in the background during the casual GO game.
+It happens in the background during the casual Go game.
+
+More on ML in `gomrade/classifiers/`
 
 ### Code structure
 
@@ -79,7 +81,8 @@ https://github.com/jtauber/gtp
 
 There's a fantastic piece of engineering in Imago:
 https://github.com/tomasmcz/imago
+Which presents the performance of advanced image processing techniques.
 
-Although a pretty sophisticated algorithm and great code are used, the goals of Imago were different than ours. We consider
-the usage of board detection or some other ideas in the future but at the moment manual 
+Although a pretty sophisticated algorithm and great code are used, the goals of Imago were different than ours. 
+We will consider the usage of board detection or some other ideas in the future but at the moment manual 
 detectors are more useful and general.
