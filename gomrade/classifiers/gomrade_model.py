@@ -11,5 +11,5 @@ class GomradeModel(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def read_board(self, frame):
+    def read_board(self, frame, debug):
         pass

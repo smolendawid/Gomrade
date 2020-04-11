@@ -4,12 +4,13 @@ import numpy as np
 import os
 import yaml
 
+from gomrade.state_utils import project_stones_state
 from gomrade.transformations import order_points
 from gomrade.images_utils import avg_images, get_pt_color, fill_buffer
 from gomrade.classifier import closest_color
 from gomrade.gomrade_model import GomradeModel
 
-# todo move to config?
+# todo should it be hardcoded here?
 NUM_BLACK_POINTS = 2
 NUM_WHITE_POINTS = 2
 NUM_BOARD_POINTS = 6
@@ -109,7 +110,7 @@ class ManualBoardStateClassifier(GomradeModel):
         self.x_grid = [int(x) for x in x_grid]
         self.y_grid = [int(y) for y in y_grid]
 
-    def read_board(self, frame):
+    def read_board(self, frame, debug=False):
         # frame = cv2.blur(frame, ksize=(10, 10))
 
         stones_state = []
@@ -120,9 +121,12 @@ class ManualBoardStateClassifier(GomradeModel):
 
                 c = closest_color(mean_rgb, self.board_colors, self.black_colors, self.white_colors)
                 stones_state.append(c)
-                frame[i: i, j: j, :] = 0
+                if debug:
+                    frame[i-5: i+5, j-5: j+5, :] = 0
 
-        return stones_state
+        stones_state = project_stones_state(stones_state)
+
+        return stones_state, frame
 
 
 class ManualBoardExtractor(GomradeModel):
@@ -175,6 +179,6 @@ class ManualBoardExtractor(GomradeModel):
         # todo fit should not return anything
         return width, height
 
-    def read_board(self, frame):
+    def read_board(self, frame, debug=False):
         # compute the perspective transform matrix and then apply it
         return cv2.warpPerspective(frame, self.M, (self.max_width, self.max_height))
