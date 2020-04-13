@@ -18,7 +18,9 @@ def classify_brightness(rgb_tuple, dominant_color):
     return color
 
 
-def closest_color(rgb_tuple, board_colors, black_colors, white_colors):
+def closest_color(rgb_tuple, board_colors, black_colors, white_colors) -> str:
+    """Manhattan distance, colors should be in tuple (r,g,b)
+    return the closest color: `W` `B` or `.`"""
     colors = []
 
     for color in board_colors:

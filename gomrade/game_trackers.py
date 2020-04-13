@@ -47,6 +47,7 @@ class GameTracker:
         root_node.set("KM", komi)
 
     def vanilla_parse(self, stones_state):
+        """Temporary method """
         # tmp = ''
 
         self.create_empty(self.board_size, self.komi)

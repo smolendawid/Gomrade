@@ -2,6 +2,7 @@
 board_size: 19
 komi: 6.5
 ai_color: 'white'
+to_move: 'black' # first that moves
 
 # Dynamics
 artifact_limit: 8
@@ -33,3 +34,6 @@ lastmove:
 #board_state_classifier_state:
 board_extractor_state: data/board_extractor_state.yml
 board_state_classifier_state: data/board_state_classifier_state.yml
+
+# Other
+debug: True

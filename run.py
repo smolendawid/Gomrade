@@ -64,5 +64,6 @@ if __name__ == '__main__':
 
     vis = StateVisualizer()
 
-    gl = GomradeGame(config=config, engine=engine, board_extractor=be, board_classifier=bsc, visualizer=vis)
-    gl.run(cap, exp_dir)
+    gl = GomradeGame(config=config, exp_dir=exp_dir, engine=engine,
+                     board_extractor=be, board_classifier=bsc, visualizer=vis)
+    gl.run(cap, debug=config['debug'])
