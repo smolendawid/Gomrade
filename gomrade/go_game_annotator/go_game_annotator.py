@@ -70,11 +70,11 @@ if __name__ == '__main__':
 
     board_size = args.board_size
 
-    examples = collect_examples(args.images_path)
+    examples, sources = collect_examples(args.images_path)
 
     x_grid, y_grid, img = None, None, None
     prev_source = ''
-    for example, source in tqdm.tqdm(examples):
+    for example, source in tqdm.tqdm(zip(examples, sources)):
 
         annotation_path = example[:-4] + '.txt'
         if os.path.exists(annotation_path):

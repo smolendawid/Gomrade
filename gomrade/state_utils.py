@@ -5,8 +5,7 @@ import numpy as np
 import math
 
 
-def write_pretty_state(stones_state, path, debug=False):
-    """ Write stones state in readable format"""
+def create_pretty_state(stones_state):
     result = ''
     board_size = int(math.sqrt(len(stones_state)))
 
@@ -17,6 +16,14 @@ def write_pretty_state(stones_state, path, debug=False):
             result += str(stones_state[x * board_size + y])
             if y != board_size - 1:
                 result += ' '
+
+    return result
+
+
+def write_pretty_state(stones_state, path, debug=False):
+    """ Write stones state in readable format"""
+
+    result = create_pretty_state(stones_state)
 
     if debug:
         print(result)

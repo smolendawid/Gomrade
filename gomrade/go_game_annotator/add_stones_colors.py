@@ -19,21 +19,23 @@ if __name__ == '__main__':
 
     board_size = args.board_size
 
-    examples = collect_examples(args.images_path)
+    examples, sources = collect_examples(args.images_path)
     prev_source = ''
 
-    for example, source in examples:
+    for example, source in zip(examples, sources):
         if source == prev_source:
             print("Skipping {}".format(source))
             continue
-        print("Annotating {}".format(source))
 
         img = cv2.imread(example)
 
         board_state_classifier_state = os.path.join(source, 'board_state_classifier_state.yml')
 
         if os.path.exists(board_state_classifier_state):
+            print("Skipping {}".format(source))
             continue
+
+        print("Annotating {}".format(source))
 
         with open(os.path.join(source, 'board_extractor_state.yml')) as f:
             pts_clicks = yaml.load(f)['pts_clicks']
@@ -55,8 +57,8 @@ if __name__ == '__main__':
 
         bsc = ManualBoardStateClassifier(width,  height)
 
-        img = VideoCaptureFrameMock(img)
-        bsc.fit(config=config, cap=img)
+        transformed_frame = VideoCaptureFrameMock(transformed_frame)
+        bsc.fit(config=config, cap=transformed_frame)
         bsc.dump(exp_dir=source)
 
         prev_source = source

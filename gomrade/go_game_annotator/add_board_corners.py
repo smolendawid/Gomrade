@@ -17,10 +17,10 @@ if __name__ == '__main__':
 
     board_size = args.board_size
 
-    examples = collect_examples(args.images_path)
+    examples, sources = collect_examples(args.images_path)
     prev_source = ''
 
-    for example, source in examples:
+    for example, source in zip(examples, sources):
         if source == prev_source:
             print("Skipping {}".format(source))
             continue
@@ -30,6 +30,7 @@ if __name__ == '__main__':
         board_extractor_state_path = os.path.join(source, 'board_extractor_state.yml')
 
         if os.path.exists(board_extractor_state_path):
+            print("Skipping {}".format(source))
             continue
         print("Annotating {}".format(source))
 
