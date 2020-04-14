@@ -5,7 +5,7 @@ import yaml
 
 from gomrade.state_utils import project_stones_state
 from gomrade.transformations import order_points
-from gomrade.images_utils import avg_images, get_pt_color, fill_buffer
+from gomrade.images_utils import avg_images_in_buffer, get_pt_color, fill_buffer
 from gomrade.classifiers.classifier import closest_color
 from gomrade.classifiers.gomrade_model import GomradeModel
 
@@ -17,27 +17,37 @@ PTPXL = 9
 
 
 class ImageClicker:
-    def __init__(self, clicks):
-        self.pts_clicks = []
-        self.clicks = clicks
+    def __init__(self, clicks_num=None):
+        """ object for collecting the clicks on image
+        If clicks_num == None it saves points until 'q' is clicked"""
 
-    def _click_and_crop(self, event, x, y, flags, param):
+        self.pts_clicks = []
+        self.clicks_num = clicks_num
+
+    def _click_event(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             self.pts_clicks.append((x, y))
 
-    def get_points_of_interest(self, cap, image_title):
+    def get_points_of_interest(self, obj, image_title: str):
+        """ Get points from VideoCaputre or frame
+        :param obj: VideoCapture
+        :param image_title: str
+        :return: list of self.clicks_num coordinates [(x,y), ...]
+        """
 
         cv2.namedWindow(image_title)
-        cv2.setMouseCallback(image_title, self._click_and_crop)
+        cv2.setMouseCallback(image_title, self._click_event)
 
         while True:
-            _, frame = cap.read()
+            _, frame = obj.read()
 
             # display the image and wait for a keypress
             cv2.imshow(image_title, frame)
-            key = cv2.waitKey(1) & 0xFF
+            if cv2.waitKey(33) == ord('q'):
+                cv2.destroyWindow(image_title)
+                break
 
-            if len(self.pts_clicks) == self.clicks:
+            if len(self.pts_clicks) == self.clicks_num:
                 cv2.destroyWindow(image_title)
                 break
         return self.pts_clicks
@@ -89,11 +99,11 @@ class ManualBoardStateClassifier(GomradeModel):
 
         num_neighbours = config['board_state_classifier']['num_neighbours']
 
-        clicker = ImageClicker(clicks=10)
+        clicker = ImageClicker(clicks_num=10)
         pts_clicks = clicker.get_points_of_interest(cap, image_title='2 black, 2 white, 4 board clicks')
 
         buf = fill_buffer(cap, config["buffer_size"])
-        frame = avg_images(buf)
+        frame = avg_images_in_buffer(buf)
 
         black_colors = get_pt_color(frame, pts_clicks[:2], num_neighbours=num_neighbours)
         white_colors = get_pt_color(frame, pts_clicks[:4], num_neighbours=num_neighbours)
@@ -153,7 +163,7 @@ class ManualBoardExtractor(GomradeModel):
             self._load_from_state(config['board_extractor_state'])
             return self.width, self.height
 
-        clicker = ImageClicker(clicks=4)
+        clicker = ImageClicker(clicks_num=4)
         pts_clicks = clicker.get_points_of_interest(cap, image_title='Click corners: left upper, right upper, '
                                                                      'right bottom, left bottom')
 

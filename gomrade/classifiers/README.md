@@ -28,4 +28,15 @@ Models should use the interfaces implemented in `gomrade/classifiers/gomrade_mod
 Run `gomrade/classifiers/train_validate.py` for training and testing your model.
 
 ## Status 
+
+For full dataset:
+
+- 24 sources
+- 724 images
+- 261364 elements to classify
+
+For one-source-out:
+
+```
 todo
+```

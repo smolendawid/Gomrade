@@ -1,11 +1,14 @@
 import logging
 import time
+import warnings
 
 import numpy as np
 
 
 class BoardStateInterpreter:
     def __init__(self, config):
+        warnings.warn("BoardStateInterpreter is hardware dependent and should not be used anymore!")
+
         self.num_of_the_same = 0
         self.num_of_the_diff = 0
         self.artifact = 0
@@ -56,6 +59,13 @@ class BoardStateInterpreter:
 
 class TimeBoardStateInterpreter:
     def __init__(self, config):
+        """ Objects analyses time and the changes in recognized board state. Works this way:
+        - If board state changed, check for `self.minimal_duration` if it's still the same. If not, ignore, if yes,
+        consider it as a real change. Trigger the object
+        - If state is `self.move_acceptance` long the same, and object is triggered, decide the move has been made
+
+        :param config:
+        """
         self.prev_stones_state = np.chararray((config['board_size'] * config['board_size'],))
         self.minimal_duration = config['minimal_duration_time']
         self.move_acceptance = config['move_acceptance_time']
@@ -63,7 +73,10 @@ class TimeBoardStateInterpreter:
         self.last_move_last_seen = time.time()
         self.is_still = 0.
         self.prev_time = 0.
-        self.triggered = False
+        if config["ai_color"] == config["to_move"]:
+            self.triggered = True
+        else:
+            self.triggered = False
 
     def _check_state_the_same(self, stones_state):
         is_same = False
@@ -71,7 +84,7 @@ class TimeBoardStateInterpreter:
             is_same = True
         return is_same
 
-    def interpret(self, stones_state, color_to_play):
+    def interpret(self, stones_state: list, color_to_play) -> bool:
         is_move = False
         curr = time.time()
 
