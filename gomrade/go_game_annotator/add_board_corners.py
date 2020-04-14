@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from gomrade.classifiers.train_validate import collect_examples
-from gomrade.classifiers.manual_models import ImageClicker
+from gomrade.classifiers.manual_models import ManualBoardExtractor
 from gomrade.images_utils import VideoCaptureFrameMock
 
 
@@ -33,14 +33,14 @@ if __name__ == '__main__':
             continue
         print("Annotating {}".format(source))
 
-        clicker = ImageClicker(clicks_num=4)
+        config = {
+            'board_extractor_state': None,
+        }
+
+        bsc = ManualBoardExtractor()
 
         img = VideoCaptureFrameMock(img)
-
-        pts_clicks = clicker.get_points_of_interest(img, image_title='Click corners: left upper, right upper, '
-                                                                     'right bottom, left bottom')
-
-        with open(board_extractor_state_path, 'w') as f:
-            yaml.safe_dump({'pts_clicks': pts_clicks}, f)
+        bsc.fit(config=config, cap=img)
+        bsc.dump(exp_dir=source)
 
         prev_source = source
