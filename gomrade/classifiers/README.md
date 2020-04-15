@@ -31,12 +31,19 @@ Run `gomrade/classifiers/train_validate.py` for training and testing your model.
 
 For full dataset:
 
-- 24 sources
-- 724 images
-- 261364 elements to classify
+- 23 sources
+- 704 images
+- 254144 elements to classify
 
 For one-source-out:
 
 ```
-todo
+All images to classify: 704
+All sources correct: 0.4090909090909091
+Accuracy: 0.8011363636363636
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      0.99    219628
+           1       0.98      0.99      0.99     17448
+           2       0.91      0.99      0.95     17068
 ```

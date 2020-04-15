@@ -9,7 +9,6 @@ class VideoCaptureFrameMock:
         return None, self.frame
 
 
-
 def get_pt_color(frame: np.ndarray, pts: [()], num_neighbours: int) -> list:
     """ Gets mean color of pixel in `frame` in every `pts` point
     and its square neighbourhood of size `num_neighbours`"""

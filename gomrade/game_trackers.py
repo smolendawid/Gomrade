@@ -53,16 +53,36 @@ What can happen:
 
 """
 
+from enum import Enum
+
+
+class Task(Enum):
+    REGULAR = 0
+    KILL = 1
+    UNDO = 1
+
 
 class GameTracker:
     def __init__(self):
         self.game = None
         self.board_size = None
         self.komi = None
-        self.state_history = []
+        self.state_history = None
+        self.task = None
 
-    def many_stones_added(self):
-        pass
+    def _is_kill(self, diffs):
+        if self._one_color(diffs) and self._empty(diffs):
+            pass
+
+    def _diff(self, stones_state):
+        prev_state = self.state_history[-1]
+        diffs = "".join([s for s, p in zip(stones_state, prev_state) if s != p])
+        if diffs == 'W' or diffs == 'B':
+            self.task = Task.REGULAR
+        if self._is_kill(diffs):
+            self.task = Task.KILL
+        if stones_state in self.state_history:
+            self.task = Task.UNDO
 
     def load_game(self, path):
         with open(path, 'r') as f:
@@ -73,21 +93,6 @@ class GameTracker:
         with open(path, 'w') as f:
             f.write(self.to_string())
 
-    def wrong_color_added(self):
-        pass
-
-    def seems_like_undo(self):
-        pass
-
-    def seems_like_reset(self):
-        pass
-
-    def translate_stones_state(self):
-        pass
-
-    def update_sgf(self):
-        pass
-
     def to_string(self):
         return self.game.serialise().decode("utf-8")
 
@@ -95,6 +100,7 @@ class GameTracker:
         self.game = sgf.Sgf_game(size=size, encoding="UTF-8")
         self.board_size = size
         self.komi = komi
+        self.state_history = ['.' * size * size]
         root_node = self.game.get_root()
         root_node.set("KM", komi)
 
@@ -108,18 +114,26 @@ class GameTracker:
                 c = stones_state[row*self.board_size + col]
                 if c == '.':
                     continue
-                # tmp = 'w' if tmp == 'b' else 'b'
                 node = self.game.extend_main_sequence()
                 node.set_move(c.lower(), (row, col))
 
     def replay_position(self, stones_state):
 
         stones_state = project_stones_state(stones_state, flip=True, rotate=False)
-        self.state_history.append(stones_state)
 
-        self.vanilla_parse(stones_state)
+        self._diff(stones_state)
+
         # node = self.game.extend_main_sequence()
         # node.set_move('b', (2, 3))
+
+        self.state_history.append(stones_state)
+
+    def _one_color(self, diffs):
+        for d in diffs:
+            pass
+
+    def _empty(self, diffs):
+        pass
 
 
 if __name__ == '__main__':
@@ -130,7 +144,7 @@ if __name__ == '__main__':
     gt.create_empty(size=19, komi=6.5)
 
     stones_state = list('....................' * 19)
-    stones_state[16] = 'b'
-    stones_state[240] = 'w'
-
-    gt.replay_position(''.join(stones_state))
+    stones_state[16] = 'B'
+    gt.replay_position(stones_state)
+    stones_state[240] = 'W'
+    gt.replay_position(stones_state)

@@ -106,7 +106,7 @@ class ManualBoardStateClassifier(GomradeModel):
         frame = avg_images_in_buffer(buf)
 
         black_colors = get_pt_color(frame, pts_clicks[:2], num_neighbours=num_neighbours)
-        white_colors = get_pt_color(frame, pts_clicks[:4], num_neighbours=num_neighbours)
+        white_colors = get_pt_color(frame, pts_clicks[2:4], num_neighbours=num_neighbours)
         board_colors = get_pt_color(frame, pts_clicks[4:], num_neighbours=num_neighbours)
 
         # Create grid coords

@@ -27,6 +27,7 @@ def collect_examples(images_path: str) -> [[]]:
 
     for d in dirs:
         files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith('.png') or f.endswith('.jpg')]
+        files.sort()
 
         for f in files:
             all_examples.append(f)
@@ -109,8 +110,8 @@ if __name__ == '__main__':
     all_elements = 0
     the_same = 0
     all_ex = 0
-    full_sources_correct = 0
-    sources_num = 0
+    full_sources_correct = 0.
+    sources_num = 0.
     for train_ind, valid_ind in cv.split(examples, groups=sources):
 
         train = examples[train_ind]
@@ -127,7 +128,7 @@ if __name__ == '__main__':
         all_ex += len(ref)
 
         acc = sum(r == p for r, p in zip(ref, pred))/len(ref)
-        if acc == 100:
+        if acc == 1:
             full_sources_correct += 1
         sources_num += 1
 
