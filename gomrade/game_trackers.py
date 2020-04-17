@@ -1,6 +1,9 @@
 from sgfmill import sgf, ascii_boards, boards
+from collections import Counter
 
 from gomrade.state_utils import project_stones_state
+from gomrade.state_utils import create_pretty_state
+
 
 """
 What can happen:
@@ -55,11 +58,15 @@ What can happen:
 
 from enum import Enum
 
+_W = 'W'
+_B = 'B'
+_E = '.'
+
 
 class Task(Enum):
     REGULAR = 0
     KILL = 1
-    UNDO = 1
+    UNDO = 2
 
 
 class GameTracker:
@@ -68,21 +75,47 @@ class GameTracker:
         self.board_size = None
         self.komi = None
         self.state_history = None
-        self.task = None
+        self._task = None
 
-    def _is_kill(self, diffs):
-        if self._one_color(diffs) and self._empty(diffs):
-            pass
+    @property
+    def task(self):
+        return self._task
+
+    def _has_only_one_color(self, blacks, whites):
+        has_only_one_color = False
+        if (whites == 0 and blacks > 0) or (blacks == 0 and whites > 0):
+            has_only_one_color = True
+        return has_only_one_color
+
+    def _has_empty(self, empties):
+        has_empty = False
+        if empties > 0:
+            has_empty = True
+        return has_empty
+
+    def _is_kill(self, diff):
+        counter = Counter(diff)
+        blacks = counter[_B]
+        whites = counter[_W]
+        empties = counter[_E]
+
+        is_kill = False
+        if self._has_only_one_color(blacks, whites) and self._has_empty(empties):
+            is_kill = True
+        return is_kill
+
+    def _is_undo(self, stones_state):
+        is_undo = False
+        for prev in self.state_history:
+            if stones_state == prev:
+                is_undo = True
+        return is_undo
 
     def _diff(self, stones_state):
         prev_state = self.state_history[-1]
-        diffs = "".join([s for s, p in zip(stones_state, prev_state) if s != p])
-        if diffs == 'W' or diffs == 'B':
-            self.task = Task.REGULAR
-        if self._is_kill(diffs):
-            self.task = Task.KILL
-        if stones_state in self.state_history:
-            self.task = Task.UNDO
+        diff = "".join([s for s, p in zip(stones_state, prev_state) if s != p])
+
+        return diff
 
     def load_game(self, path):
         with open(path, 'r') as f:
@@ -121,30 +154,31 @@ class GameTracker:
 
         stones_state = project_stones_state(stones_state, flip=True, rotate=False)
 
-        self._diff(stones_state)
+        if self._is_undo(stones_state):
+            self._task = Task.UNDO
+        else:
+            diff = self._diff(stones_state)
+
+            if diff == _W or diff == _B:
+                self._task = Task.REGULAR
+            if self._is_kill(diff):
+                self._task = Task.KILL
+            if stones_state in self.state_history:
+                self._task = Task.UNDO
 
         # node = self.game.extend_main_sequence()
         # node.set_move('b', (2, 3))
 
         self.state_history.append(stones_state)
 
-    def _one_color(self, diffs):
-        for d in diffs:
-            pass
-
-    def _empty(self, diffs):
-        pass
-
 
 if __name__ == '__main__':
-    root = '/Users/dasm/projects/Gomrade/'
-    # in_path = root + 'data/Xie_Yimin-Fujisawa_Rina.sgf', out_path = root + 'data/out.txt'
 
     gt = GameTracker()
     gt.create_empty(size=19, komi=6.5)
 
     stones_state = list('....................' * 19)
-    stones_state[16] = 'B'
-    gt.replay_position(stones_state)
-    stones_state[240] = 'W'
+
+    stones_state[60] = 'B'
+    print(create_pretty_state(stones_state) + '\n\n')
     gt.replay_position(stones_state)
