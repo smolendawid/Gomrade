@@ -1,6 +1,8 @@
 import os
 
 from sgfmill import sgf, ascii_boards, boards
+from sgfmill.sgf import Tree_node
+
 from collections import Counter
 
 from gomrade.state_utils import project_stones_state
@@ -91,6 +93,8 @@ class SgfTranslator:
 
         self.gt = GameTracker(size=board_size)
         self.interpreted_action = []
+        self.curr_node = None
+        self.nodes_history = []
 
         self.sgf_ind = 0
         self.root_path = root_path
@@ -114,40 +118,50 @@ class SgfTranslator:
         self.game.set_date()
         root_node = self.game.get_root()
         root_node.set("KM", self.komi)
+        self.curr_node = self.game.get_root()
         # stones_state = [('.' * self.board_size * self.board_size, 'w')]
         # self.gt.replay_position(stones_state)
 
-    def vanilla_parse(self, stones_state):
-        """Temporary method """
-        # tmp = ''
-        self.create_empty()
-
+    def _setup_state(self, stones_state):
+        blacks = []
+        whites = []
         for row in range(self.board_size):
             for col in range(self.board_size):
                 c = stones_state[row*self.board_size + col]
                 if c == '.':
                     continue
-                node = self.game.extend_main_sequence()
-                node.set_move(c.lower(), (row, col))
+                elif c == 'B':
+                    blacks.append((row, col))
+                elif c == 'W':
+                    whites.append((row, col))
+        self.curr_node.set_setup_stones(black=blacks, white=whites)
+
+    def vanilla_parse(self, stones_state):
+        """Temporary method """
+        self.create_empty()
+        self._setup_state(stones_state)
         self.save_game(self.path)
 
     def parse(self, stones_state):
         c, move = self.gt.replay_position(stones_state)
 
         if self.gt.task == Task.REGULAR or self.gt.task == Task.KILL:
-            node = self.game.extend_main_sequence()
-            node.set_move(c, move)
+            self.curr_node = self.curr_node.new_child()
+            self.curr_node.set_move(c, move)
+            self.save_game(self.path)
+
         elif self.gt.task == Task.UNDO:
-            node = self.game.extend_main_sequence()
-            node.set_move(c, move)
+            # self.curr_node.reparent()
+            self.curr_node = self.nodes_history[self.gt.last_undo_ind-1]
+            # self.curr_node = self.game.get_main_sequence()[self.gt.last_undo_ind]
         else:
             self.sgf_ind += 1
             self.save_game(os.path.join(self.root_path, 'game{}.sgf'.format(self.sgf_ind)))
             self.create_empty()
-            # Set AW AB
-            pass
-        self.save_game(self.path)
+            self._setup_state(stones_state)
+            self.save_game(self.path)
 
+        self.nodes_history.append(self.curr_node)
         return self.gt.task
 
 
@@ -158,6 +172,8 @@ class GameTracker:
         self.played = Move(first_move=playing)
         self.size = size
         self.raw_state_history = [('.' * size * size, playing)]
+
+        self.last_undo_ind = None
 
     @property
     def task(self):
@@ -210,11 +226,14 @@ class GameTracker:
     def _is_undo(self, stones_state):
         is_undo = False
         color = None
-        for prev, c in self.raw_state_history:
+        undo_ind = None
+        for i, (prev, c) in enumerate(self.raw_state_history):
             if stones_state == prev:
                 is_undo = True
                 color = c
-        return is_undo, color
+                undo_ind = i
+                break
+        return is_undo, color, undo_ind
 
     def _disappears(self, counter):
 
@@ -247,11 +266,11 @@ class GameTracker:
         self._task = Task.NOT_SET
         move = None
 
-        is_undo, color = self._is_undo(stones_state)
+        is_undo, color, undo_ind = self._is_undo(stones_state)
         if is_undo:
+            self.last_undo_ind = undo_ind
             self._task = Task.UNDO
             self.played.c = color
-            self.played.switch()
         else:
             diff_new, diff_prev, diff_inds = self._diff(stones_state)
 

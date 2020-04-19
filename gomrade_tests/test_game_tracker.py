@@ -57,7 +57,7 @@ def test_kill():
     assert gt.task == Task.KILL
 
 
-def test_undo():
+def test_undo_to_black():
     gt = GameTracker(size=9)
 
     for i in range(10):
@@ -68,6 +68,47 @@ def test_undo():
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
+    assert gt.played.c == 'b'
+
+
+def test_undo_to_white():
+    gt = GameTracker(size=9)
+
+    for i in range(10):
+        stones_state = list(toy_game[i].replace(' ', ''))
+        gt.replay_position(stones_state)
+
+    stones_state  = list(toy_game[6].replace(' ', ''))
+    gt.replay_position(stones_state)
+
+    assert gt.task == Task.UNDO
+    assert gt.played.c == 'w'
+
+
+def test_undo_and_regular():
+    gt = GameTracker(size=9)
+
+    for i in range(10):
+        stones_state = list(toy_game[i].replace(' ', ''))
+        gt.replay_position(stones_state)
+
+    stones_state  = list(toy_game[5].replace(' ', ''))
+    gt.replay_position(stones_state)
+
+    assert gt.task == Task.UNDO
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . B . .' \
+                   '. . . . . . . . .' \
+                   '. . W B B . . . .' \
+                   '. . . W . . . . .' \
+                   '. . . . . . W . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .'
+    gt.replay_position(list(stones_state.replace(' ', '')))
+
+    assert gt.task == Task.REGULAR
 
 
 def test_many_added():
