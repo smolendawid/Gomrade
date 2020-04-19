@@ -10,8 +10,9 @@ import logging
 from gomrade.images_utils import avg_images_in_buffer, fill_buffer
 from gomrade.state_utils import save_game_state
 from gomrade.action_interpreters import TimeBoardStateInterpreter
-from gomrade.game_trackers import GameTracker
+from gomrade.game_trackers import SgfTranslator, Task
 from gomrade.classifiers.gomrade_model import GomradeModel
+from gomrade.common import Move
 
 
 def play_wav(m):
@@ -23,21 +24,6 @@ def play_wav(m):
 
     except ResourceWarning:
         warnings.warn("Unable to play sound {}.mp3".format(m))
-
-
-class Move:
-    def __init__(self, first_move):
-        self._c = first_move
-
-    def switch(self):
-        if self._c == 'black':
-            self._c = 'white'
-        else:
-            self._c = 'black'
-
-    @property
-    def c(self):
-        return self._c
 
 
 class GomradeGame:
@@ -58,17 +44,14 @@ class GomradeGame:
         self.buffer_size = config['buffer_size']
         self.ai_color = config['ai_color']
         self.exp_dir = exp_dir
-        self.sgf_file = os.path.join(exp_dir, 'game.sgf')
+        self.sgf_file_root = exp_dir
 
         self.engine = engine
         self.visualizer = visualizer
         self.board_extractor = board_extractor
         self.board_classifier = board_classifier
         self.interpreter = TimeBoardStateInterpreter(config=config)
-        self.game_tracker = GameTracker()
-
-        self.game_tracker.create_empty(config['board_size'], komi=config['komi'])
-        self.game_tracker.save_game(self.sgf_file)
+        self.sgf_translator = SgfTranslator(config['board_size'], komi=config['komi'], root_path=self.sgf_file_root)
 
         self.move = Move(first_move=config['ai_color'])
 
@@ -76,11 +59,15 @@ class GomradeGame:
 
     def _execute(self, engine, stones_state):
 
-        engine.clear_board()
-        self.game_tracker.replay_position(stones_state)
-        self.game_tracker.save_game(self.sgf_file)
+        task = self.sgf_translator.parse(stones_state)
 
-        engine.load_sgf(path=self.sgf_file)
+        if task == Task.OTHER_ERROR: play_wav('error')
+        if task == Task.UNDO: play_wav('undo')
+        if task == Task.DISAPPEAR: play_wav('disappeared')
+        if task != Task.UNDO or task != Task.REGULAR or task != Task.KILL: play_wav('reset')
+
+        engine.clear_board()
+        engine.load_sgf(path=self.sgf_translator.path)
         engine.showboard()
 
     def _execute_move(self, engine, stones_state):

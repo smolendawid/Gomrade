@@ -7,3 +7,6 @@ gtp.log
 .idea
 
 **/__pycache__
+
+# Test side files
+gomrade_tests/game*

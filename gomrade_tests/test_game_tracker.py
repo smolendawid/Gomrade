@@ -3,14 +3,8 @@ from gomrade.game_trackers import GameTracker, Task
 from gomrade_tests.toy_game import toy_game
 
 
-def _init():
-    gt = GameTracker()
-    gt.create_empty(size=9, komi=0.5)
-    return gt
-
-
 def test_regular_move():
-    gt = _init()
+    gt = GameTracker(size=9)
 
     stones_state = list(toy_game[0].replace(' ', ''))
 
@@ -26,16 +20,27 @@ def test_regular_move():
 
 
 def test_kill():
-    gt = _init()
+    gt = GameTracker(size=9)
 
+    stones_state = list(toy_game[8].replace(' ', ''))
+    gt.replay_position(stones_state)
 
     stones_state = list(toy_game[9].replace(' ', ''))
     gt.replay_position(stones_state)
 
-    stones_state = list(toy_game[10].replace(' ', ''))
-    gt.replay_position(stones_state)
-
     assert gt.task == Task.KILL
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . B . B . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . W W .' \
+                   '. . . . . W B B B'
+
+    gt.replay_position(list(stones_state.replace(' ', '')))
 
     stones_state = '. . . . . . . . .' \
                    '. . . B . . . . .' \
@@ -53,7 +58,7 @@ def test_kill():
 
 
 def test_undo():
-    gt = _init()
+    gt = GameTracker(size=9)
 
     for i in range(10):
         stones_state = list(toy_game[i].replace(' ', ''))
@@ -63,3 +68,93 @@ def test_undo():
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
+
+
+def test_many_added():
+    gt = GameTracker(size=9)
+
+    stones_state = list(toy_game[0].replace(' ', ''))
+    gt.replay_position(stones_state)
+
+    stones_state[0] = 'B'
+    stones_state[1] = 'B'
+    gt.replay_position(stones_state)
+    assert gt.task == Task.MANY_ADDED
+
+    stones_state[2] = 'W'
+    stones_state[3] = 'W'
+    gt.replay_position(stones_state)
+    assert gt.task == Task.MANY_ADDED
+
+    stones_state[4] = 'W'
+    stones_state[5] = 'B'
+    gt.replay_position(stones_state)
+
+    assert gt.task == Task.MANY_ADDED
+
+
+def test_disappear():
+    gt = GameTracker(size=9)
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . B . B . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . W W .' \
+                   '. . . . . W B B B'
+    gt.replay_position(list(stones_state.replace(' ', '')))
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . B . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . W W .' \
+                   '. . . . . W B B B'
+    gt.replay_position(list(stones_state.replace(' ', '')))
+
+    assert gt.task == Task.DISAPPEAR
+
+
+def test_other_error():
+    gt = GameTracker(size=9)
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . B . B . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . W W .' \
+                   '. . . . . W B B B'
+    gt.replay_position(list(stones_state.replace(' ', '')))
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . B . . B .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . W W .' \
+                   '. . . . . W B B B'
+    gt.replay_position(list(stones_state.replace(' ', '')))
+    assert gt.task == Task.OTHER_ERROR
+
+    stones_state = '. . . . . . . . .' \
+                   '. . . B . . . . .' \
+                   '. . B B B . . . .' \
+                   '. . . B . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . . . .' \
+                   '. . . . . . W W .' \
+                   '. . . . . W B B B'
+    gt.replay_position(list(stones_state.replace(' ', '')))
+    assert gt.task == Task.OTHER_ERROR
