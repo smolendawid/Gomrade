@@ -1,10 +1,10 @@
 import pytest
-from gomrade.game_trackers import GameTracker, Task
+from gomrade.game_trackers import MoveRecognizer, Task
 from gomrade_tests.toy_game import toy_game
 
 
 def test_regular_move():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     stones_state = list(toy_game[0].replace(' ', ''))
 
@@ -20,7 +20,7 @@ def test_regular_move():
 
 
 def test_kill():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     stones_state = list(toy_game[8].replace(' ', ''))
     gt.replay_position(stones_state)
@@ -58,7 +58,7 @@ def test_kill():
 
 
 def test_undo_to_black():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     for i in range(10):
         stones_state = list(toy_game[i].replace(' ', ''))
@@ -72,7 +72,7 @@ def test_undo_to_black():
 
 
 def test_undo_to_white():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     for i in range(10):
         stones_state = list(toy_game[i].replace(' ', ''))
@@ -86,7 +86,7 @@ def test_undo_to_white():
 
 
 def test_undo_and_regular():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     for i in range(10):
         stones_state = list(toy_game[i].replace(' ', ''))
@@ -112,7 +112,7 @@ def test_undo_and_regular():
 
 
 def test_many_added():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     stones_state = list(toy_game[0].replace(' ', ''))
     gt.replay_position(stones_state)
@@ -135,7 +135,7 @@ def test_many_added():
 
 
 def test_disappear():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     stones_state = '. . . . . . . . .' \
                    '. . . B . . . . .' \
@@ -163,7 +163,7 @@ def test_disappear():
 
 
 def test_other_error():
-    gt = GameTracker(size=9)
+    gt = MoveRecognizer(size=9)
 
     stones_state = '. . . . . . . . .' \
                    '. . . B . . . . .' \

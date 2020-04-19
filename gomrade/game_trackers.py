@@ -86,12 +86,16 @@ class Task(Enum):
 
 
 class SgfTranslator:
-    def __init__(self, board_size, komi, root_path):
+    def __init__(self, board_size: int, komi: float, root_path: str):
+        """ Translate the recognized stones and recognized move character, employing the history of the game, to
+        SGF file. If it's unable to track the game, it save the current state as game{i}.sgf and creates new game from
+        the state.
+        """
         self.game = None
         self.board_size = board_size
         self.komi = komi
 
-        self.gt = GameTracker(size=board_size)
+        self.mr = MoveRecognizer(size=board_size)
         self.interpreted_action = []
         self.curr_node = None
         self.nodes_history = []
@@ -137,22 +141,22 @@ class SgfTranslator:
         self.curr_node.set_setup_stones(black=blacks, white=whites)
 
     def vanilla_parse(self, stones_state):
-        """Temporary method """
+        """Temporary method. Interprets the state as is with AW AB and AE attributes"""
         self.create_empty()
         self._setup_state(stones_state)
         self.save_game(self.path)
 
     def parse(self, stones_state):
-        c, move = self.gt.replay_position(stones_state)
+        c, move = self.mr.replay_position(stones_state)
 
-        if self.gt.task == Task.REGULAR or self.gt.task == Task.KILL:
+        if self.mr.task == Task.REGULAR or self.mr.task == Task.KILL:
             self.curr_node = self.curr_node.new_child()
             self.curr_node.set_move(c, move)
             self.save_game(self.path)
 
-        elif self.gt.task == Task.UNDO:
+        elif self.mr.task == Task.UNDO:
             # self.curr_node.reparent()
-            self.curr_node = self.nodes_history[self.gt.last_undo_ind-1]
+            self.curr_node = self.nodes_history[self.mr.last_undo_ind - 1]
             # self.curr_node = self.game.get_main_sequence()[self.gt.last_undo_ind]
         else:
             self.sgf_ind += 1
@@ -162,11 +166,22 @@ class SgfTranslator:
             self.save_game(self.path)
 
         self.nodes_history.append(self.curr_node)
-        return self.gt.task
+        return self.mr.task
 
 
-class GameTracker:
-    def __init__(self, size, playing='b'):
+class MoveRecognizer:
+    def __init__(self, size: int, playing='b'):
+        """
+        Interpret the status of the game, e.g. the character of the move.
+        Moves that can be recognized are:
+        - regular move
+        - kill move
+        - undo move
+        - undo move
+        - many stones added
+        - stones disappeared
+        - other non typical action
+        """
         self.raw_state_history = None
         self._task = None
         self.played = Move(first_move=playing)
@@ -261,7 +276,7 @@ class GameTracker:
 
         return diff_new, diff_prev, diff_inds
 
-    def understand_task(self, stones_state):
+    def _understand_task(self, stones_state):
 
         self._task = Task.NOT_SET
         move = None
@@ -300,7 +315,7 @@ class GameTracker:
 
         stones_state = project_stones_state(stones_state, flip=True, rotate=False)
 
-        move = self.understand_task(stones_state)
+        move = self._understand_task(stones_state)
         curr_color = self.played.c
 
         self.played.switch()
@@ -311,7 +326,7 @@ class GameTracker:
 
 if __name__ == '__main__':
 
-    gt = GameTracker(size=19)
+    gt = MoveRecognizer(size=19)
 
     stones_state = list('....................' * 19)
 
