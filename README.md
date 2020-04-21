@@ -1,4 +1,6 @@
 ## Intro 
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsmolendawid%2FGomrade.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsmolendawid%2FGomrade?ref=badge_shield)
+
 
 This repository allows you to play GO with strong AI on a real board. 
 
@@ -86,3 +88,7 @@ Which presents the performance of advanced image processing techniques.
 Although a pretty sophisticated algorithm and great code are used, the goals of Imago were different than ours. 
 We will consider the usage of board detection or some other ideas in the future but at the moment manual 
 detectors are more useful and general.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsmolendawid%2FGomrade.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsmolendawid%2FGomrade?ref=badge_large)
