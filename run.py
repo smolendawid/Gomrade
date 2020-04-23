@@ -38,7 +38,7 @@ def setup_engine(config):
 
 def load_config():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default='configs/default.yml')
+    parser.add_argument("--config", default='configs/debug.yml')
     args = parser.parse_args()
 
     return yaml.load(open(args.config, 'r'))
@@ -54,9 +54,9 @@ if __name__ == '__main__':
     cap = cv2.VideoCapture(0)
 
     be = dynamic_import(config['board_extractor']['name'])()
-    width, height = be.fit(config=config, cap=cap)
+    be.fit(config=config, cap=cap)
 
-    bsc = dynamic_import(config['board_state_classifier']['name'])(width, height)  # todo anyway to do it in less ugly?
+    bsc = dynamic_import(config['board_state_classifier']['name'])()
     bsc.fit(config=config, cap=cap)
 
     be.dump(exp_dir=exp_dir)

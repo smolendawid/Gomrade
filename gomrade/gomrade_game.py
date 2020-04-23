@@ -64,7 +64,7 @@ class GomradeGame:
         if task == Task.OTHER_ERROR: play_wav('error')
         if task == Task.UNDO: play_wav('undo')
         if task == Task.DISAPPEAR: play_wav('disappeared')
-        if task != Task.UNDO or task != Task.REGULAR or task != Task.KILL: play_wav('reset')
+        if task != Task.UNDO and task != Task.REGULAR and task != Task.KILL: play_wav('reset')
 
         engine.clear_board()
         engine.load_sgf(path=self.sgf_translator.path)
@@ -104,8 +104,9 @@ class GomradeGame:
             frame = avg_images_in_buffer(buf)
 
             # Crop image to board and perform classification
-            res = self.board_extractor.read_board(frame, debug=debug)
-            stones_state, res = self.board_classifier.read_board(res, debug=debug)
+            res, x_grid, y_grid = self.board_extractor.read_board(frame, debug=debug)
+
+            stones_state, res = self.board_classifier.read_board(res, x_grid, y_grid, debug=debug)
 
             if debug:
                 self.visualizer.show_cam(res)

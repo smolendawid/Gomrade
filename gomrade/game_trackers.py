@@ -103,6 +103,7 @@ class SgfTranslator:
         self.sgf_ind = 0
         self.root_path = root_path
         self.path = os.path.join(self.root_path, 'game.sgf')
+        self.create_empty()
 
     def load_game(self, path):
         with open(path, 'r') as f:
@@ -156,8 +157,9 @@ class SgfTranslator:
 
         elif self.mr.task == Task.UNDO:
             # self.curr_node.reparent()
-            self.curr_node = self.nodes_history[self.mr.last_undo_ind - 1]
-            # self.curr_node = self.game.get_main_sequence()[self.gt.last_undo_ind]
+            if len(self.nodes_history) > 0:
+                self.curr_node = self.nodes_history[self.mr.last_undo_ind - 1]
+                # self.curr_node = self.game.get_main_sequence()[self.gt.last_undo_ind]
         else:
             self.sgf_ind += 1
             self.save_game(os.path.join(self.root_path, 'game{}.sgf'.format(self.sgf_ind)))
