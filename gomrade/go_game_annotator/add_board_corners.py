@@ -4,7 +4,7 @@ import yaml
 import os
 import numpy as np
 
-from gomrade.classifiers.train_validate import collect_examples
+from gomrade.classifiers.validate_full_images import collect_examples
 from gomrade.classifiers.manual_models import ManualBoardExtractor
 from gomrade.images_utils import VideoCaptureFrameMock
 

@@ -4,7 +4,7 @@ import yaml
 import os
 import numpy as np
 
-from gomrade.classifiers.train_validate import collect_examples
+from gomrade.classifiers.validate_full_images import collect_examples
 from gomrade.classifiers.manual_models import ManualBoardStateClassifier
 from gomrade.transformations import order_points
 
@@ -24,8 +24,8 @@ if __name__ == '__main__':
 
     for example, source in zip(examples, sources):
         if source == prev_source:
-            print("Skipping {}".format(source))
-            continue
+            if os.path.exists(os.path.join(source, 'board_state_classifier_state.yml')):
+                continue
 
         img = cv2.imread(example)
 
@@ -59,7 +59,8 @@ if __name__ == '__main__':
 
         transformed_frame = VideoCaptureFrameMock(transformed_frame)
         bsc.fit(config=config, cap=transformed_frame)
-        bsc.dump(exp_dir=source)
+        if len(bsc.black_colors) != 0:
+            bsc.dump(exp_dir=source)
 
         prev_source = source
 

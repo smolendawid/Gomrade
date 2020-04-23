@@ -26,7 +26,7 @@ def collect_examples(images_path: str) -> [[]]:
             if os.path.isdir(os.path.join(images_path, d))]
 
     for d in dirs:
-        files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith('.png') or f.endswith('.jpg')]
+        files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith('.png') or f.endswith('.jpg') or f.endswith('.JPG')]
         files.sort()
 
         for f in files:
@@ -127,8 +127,8 @@ if __name__ == '__main__':
         the_same += sum(r == p for r, p in zip(ref, pred))
         all_ex += len(ref)
 
-        acc = sum(r == p for r, p in zip(ref, pred))/len(ref)
-        if acc == 1:
+        acc = int(sum(r == p for r, p in zip(ref, pred))/len(ref) * 100)
+        if acc == 100:
             full_sources_correct += 1
         sources_num += 1
 
