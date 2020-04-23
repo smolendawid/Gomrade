@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, f1_score, classification_report
 import numpy as np
 
 from gomrade.classifiers.manual_models import ManualBoardStateClassifier, ManualBoardExtractor
+from gomrade.images_utils import VideoCaptureFrameMock
 from gomrade.state_utils import create_pretty_state
 from gomrade.transformations import order_points
 
@@ -57,15 +58,22 @@ def run_fold(train, valid):
         image = cv2.imread(ex[0])
         with open(ex[0][:-4] + '.txt') as f:
             reference = f.read().replace('\n', '').replace(' ', '')
-        pts_clicks = load_board_extractor_state(ex[1])
 
-        M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
-        image = cv2.warpPerspective(image, M, (max_width, max_height))
+        config = {
+            'board_extractor_state': os.path.join(ex[1], 'board_extractor_state.yml'),
+            'board_state_classifier_state': os.path.join(ex[1], 'board_state_classifier_state.yml'),
+            'board_size': 19,
+        }
+        cap = VideoCaptureFrameMock(image)
+        mbe = ManualBoardExtractor()
+        mbe.fit(config=config, cap=cap)
+        bsc = ManualBoardStateClassifier()
+        bsc.fit(config=config, cap=cap)
 
-        mbc = ManualBoardStateClassifier(width=None, height=None)
-        config = {'board_state_classifier_state': os.path.join(ex[1], 'board_state_classifier_state.yml')}
-        mbc.fit(config=config, cap=None)
-        stones_state, _ = mbc.read_board(image)
+        _, frame = cap.read()
+        res, x_grid, y_grid = mbe.read_board(frame, debug=False)
+        stones_state, res = bsc.read_board(res, x_grid, y_grid, debug=False)
+
         stones_state = "".join(stones_state)
 
         predictions.append(stones_state)
