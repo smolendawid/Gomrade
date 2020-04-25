@@ -38,12 +38,16 @@ For full dataset:
 For one-source-out:
 
 ```
-All images to classify: 704
-All sources correct: 0.4090909090909091
-Accuracy: 0.8011363636363636
+All images to classify: 705
+All sources correct: 0.34782608695652173
+Imaages accuracy: 0.8936170212765957
               precision    recall  f1-score   support
 
-           0       1.00      0.99      0.99    219628
-           1       0.98      0.99      0.99     17448
-           2       0.91      0.99      0.95     17068
+           0    0.99937   0.99962   0.99949    219971
+           1    0.99874   0.99588   0.99731     17466
+           2    0.99625   0.99596   0.99610     17068
+
+    accuracy                        0.99912    254505
+   macro avg    0.99812   0.99715   0.99763    254505
+weighted avg    0.99912   0.99912   0.99912    254505
 ```

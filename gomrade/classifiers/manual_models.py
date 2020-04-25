@@ -63,7 +63,7 @@ class ManualBoardStateClassifier():
 
     def _load_from_state(self, path):
         with open(path) as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.FullLoader)
         self.__dict__ = data
 
     def _get_pt_area(self, frame, i, j):
@@ -144,7 +144,7 @@ class ManualBoardExtractor(GomradeModel):
 
     def _load_from_state(self, path):
         with open(path) as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.FullLoader)
         return data
 
     def _enlarge_roi(self, pts_clicks, max_width, max_height, board_size=19):
