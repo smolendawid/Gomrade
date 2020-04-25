@@ -1,4 +1,5 @@
 import argparse
+
 import cv2
 import tqdm
 import yaml
@@ -7,6 +8,7 @@ import numpy as np
 
 from gomrade.classifiers.validate_full_images import collect_examples
 from gomrade.classifiers.manual_models import ManualBoardExtractor, ManualBoardStateClassifier
+from gomrade.classifiers.keras_model import KerasModel
 from gomrade.state_utils import project_stones_state, write_pretty_state, create_pretty_state
 from gomrade.transformations import order_points
 from gomrade.images_utils import VideoCaptureFrameMock
@@ -20,6 +22,8 @@ class ImageClickerChange:
         self.pt0 = None
         self.pt1 = None
         self.clicks_num = clicks_num
+        self.user_changes = {}
+        self.prev_state = '.'*361
         self.mgx, self.mgy = None, None
 
     def _click_event(self, event, x, y, flags, param):
@@ -28,24 +32,41 @@ class ImageClickerChange:
         if event == cv2.EVENT_LBUTTONUP:
             self.pt1 = [x, y]
 
+    def _change_state_to_next(self, stones_state, i):
+
+        if stones_state[i] == '.':
+            stones_state[i] = 'B'
+        elif stones_state[i] == 'B':
+            stones_state[i] = 'W'
+        elif stones_state[i] == 'W':
+            stones_state[i] = '.'
+
+        return stones_state
+
     def modify(self, frame, stones_state, x_grid, y_grid, board_size):
+        stones_state = self.apply_user_changes(stones_state)
+        changed_state = stones_state.copy()
 
         image_title = "accept or change colors"
         cv2.namedWindow(image_title)
         cv2.setMouseCallback(image_title, self._click_event)
         self.mgx, self.mgy = np.meshgrid(x_grid, y_grid)
 
+        circle_size = 3
         while True:
-
             for i, col in enumerate(y_grid):
                 for j, row in enumerate(x_grid):
                     curr = stones_state[i*board_size + j]
+                    prev = self.prev_state[i*board_size + j]
+                    if curr != prev:
+                        cv2.circle(frame, (col, row), circle_size+1, (0, 255, 0), circle_size)
+
                     if curr == 'W':
-                        cv2.circle(frame, (col, row), 10, (255, 255, 255), -1)
+                        cv2.circle(frame, (col, row), circle_size, (255, 255, 255), -1)
                     if curr == 'B':
-                        cv2.circle(frame, (col, row), 10, (0, 0, 0), -1)
+                        cv2.circle(frame, (col, row), circle_size, (0, 0, 0), -1)
                     if curr == '.':
-                        cv2.circle(frame, (col, row), 10, (0, 255, 255), -1)
+                        cv2.circle(frame, (col, row), circle_size, (206, 26, 226), -1)
 
             # display the image and wait for a keypress
             cv2.imshow(image_title, frame)
@@ -57,24 +78,27 @@ class ImageClickerChange:
                 # Are close
                 if abs(self.pt1[0] - self.pt0[0]) < 50 and abs(self.pt1[1] - self.pt0[1]) < 50:
                     i = closest(self.mgx, self.mgy, self.pt0)
-                    if stones_state[i] == '.':
-                        stones_state[i] = 'B'
-                    elif stones_state[i] == 'B':
-                        stones_state[i] = 'W'
-                    elif stones_state[i] == 'W':
-                        stones_state[i] = '.'
+                    stones_state = self._change_state_to_next(stones_state, i)
+
                 else:
                     indices = in_area(self.mgx, self.mgy, self.pt0, self.pt1)
                     for i in indices:
-                        if stones_state[i] == '.':
-                            stones_state[i] = 'B'
-                        elif stones_state[i] == 'B':
-                            stones_state[i] = 'W'
-                        elif stones_state[i] == 'W':
-                            stones_state[i] = '.'
+                        stones_state = self._change_state_to_next(stones_state, i)
+
+                        # self.idx_changed.add(i)
                 self.pt0 = None
                 self.pt1 = None
 
+        for i, (prev, curr) in enumerate(zip(changed_state, stones_state)):
+            if prev != curr:
+                self.user_changes[i] = curr
+        self.prev_state = stones_state
+
+        return stones_state
+
+    def apply_user_changes(self, stones_state):
+        for i, val in self.user_changes.items():
+            stones_state[i] = val
         return stones_state
 
 
@@ -137,11 +161,12 @@ if __name__ == '__main__':
 
     x_grid, y_grid, img = None, None, None
     prev_source = ''
+    ic = ImageClickerChange()
+
     for example, source in tqdm.tqdm(zip(examples, sources)):
 
         annotation_path = example[:-4] + '.txt'
         if os.path.exists(annotation_path):
-            print('Annotation for {} exists'.format(example))
             continue
 
         print('Annotating: {}'.format(example))
@@ -154,16 +179,17 @@ if __name__ == '__main__':
             'board_size': 19,
         }
         cap = VideoCaptureFrameMock(img)
-        mbe = ManualBoardExtractor()
+        mbe = ManualBoardExtractor(resample=True)
         mbe.fit(config=config, cap=cap)
-        bsc = ManualBoardStateClassifier()
+        bsc = KerasModel('/Users/dasm/projects/Gomrade/data/go_model.h5')
+        # bsc = ManualBoardStateClassifier()
+
         bsc.fit(config=config, cap=cap)
 
         _, frame = cap.read()
         res, x_grid, y_grid = mbe.read_board(frame, debug=False)
         stones_state, res = bsc.read_board(res, x_grid, y_grid, debug=False)
 
-        ic = ImageClickerChange()
         # stones_state = project_stones_state(stones_state, rotate=False)
         stones_state = np.reshape(np.array(stones_state), (-1, 19)).T.flatten()
 

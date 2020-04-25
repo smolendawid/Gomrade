@@ -4,59 +4,26 @@ import numpy as np
 
 import cv2
 import tqdm
-import yaml
+import pandas as pd
 
-from gomrade.classifiers.validate_full_images import collect_examples
+from gomrade.common import collect_examples
 from gomrade.classifiers.manual_models import ManualBoardExtractor
 from gomrade.images_utils import VideoCaptureFrameMock
-from gomrade.transformations import order_points
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
-def load_params(img, board_extractor_state_path, board_size):
-
-    with open(board_extractor_state_path) as f:
-        pts_clicks = yaml.load(f)['pts_clicks']
-
-    M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
-
-    diff = (abs(pts_clicks[1][0] - pts_clicks[2][0]) + abs(pts_clicks[0][0] - pts_clicks[3][0]))
-    added_width_down = int(max_width/board_size/2)
-    added_width_up = int(max_width/board_size/2) - round(diff/board_size)
-    added_height = int(max_height/board_size/2)
-    # added_width_up = 0
-    # added_width_down = 0
-    # added_height = 0
-    pts_clicks[0][1] -= added_height
-    pts_clicks[1][1] -= added_height
-    pts_clicks[2][1] += added_height
-    pts_clicks[3][1] += added_height
-    pts_clicks[0][0] -= added_width_up
-    pts_clicks[1][0] += added_width_up
-    pts_clicks[2][0] += added_width_down
-    pts_clicks[3][0] -= added_width_down
-
-    M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
-
-    img_transformed = cv2.warpPerspective(img, M, (max_width, max_height))
-    img_transformed = cv2.resize(img_transformed, dsize=(max_width, max_width))
-
-    width = img_transformed.shape[0]
-    height = img_transformed.shape[1]
-
-    x_grid = np.floor(np.linspace(added_width_up*2, width - 1-added_width_up*2, board_size)).astype(int)
-    y_grid = np.floor(np.linspace(added_height, height - 1-added_height, board_size)).astype(int)
-    x_grid = [int(x) for x in x_grid]
-    y_grid = [int(y) for y in y_grid]
-
-    # img = cv2.warpPerspective(img, M, (max_width, max_height))
-
-    return x_grid, y_grid, img_transformed
+class_mapping = {
+    '.': 0,
+    'B': 1,
+    'W': 2,
+}
+X_MARGIN = 16
+Y_MARGIN = 16
 
 
-def crop_stone(image, x, y, x_margin=33, y_margin=33):
-    mask = np.zeros((x_margin*2, y_margin*2, 3))
+def crop_stone(image, x, y, x_margin=16, y_margin=16):
+    mask = np.zeros((x_margin*2, y_margin*2))
     mask_x_start = 0
     mask_y_start = 0
     mask_x_stop = image.shape[0]
@@ -80,24 +47,51 @@ def crop_stone(image, x, y, x_margin=33, y_margin=33):
         mask_y_start = y_margin*2 - (image.shape[1] - abs(y - y_margin))
         y_stop = image.shape[1]
 
-    mask[mask_x_start:mask_x_stop, mask_y_start:mask_y_stop, :] = image[x_start:x_stop, y_start:y_stop, :]
+    mask[mask_x_start:mask_x_stop, mask_y_start:mask_y_stop] = image[x_start:x_stop, y_start:y_stop]
     return mask
 
 
-def rewrite_labels_to_annot(dataset_path, yolo_path, plot=False):
+def write_to_imgs(target_root, source_name, example_name, img, annotation, row, col, board_size):
+    name_ann = os.path.join(target_root, source_name, f'{example_name[:-4]}_{i}.txt')
+    name_img = os.path.join(target_root, source_name, f'{example_name[:-4]}_{i}.jpg')
+
+    # save image
+    cropped = crop_stone(img, x, y)
+    if cropped.shape[0] > 0 and cropped.shape[1] > 0:
+        cv2.imwrite(name_img, cropped)
+    else:
+        raise ValueError()
+
+    # save label
+    with open(name_ann, 'w') as f:
+        cl = annotation[row * board_size + col]
+        if cl == '.':
+            f.write("{}\n".format(0))
+        if cl == 'B':
+            f.write("{}\n".format(1))
+        if cl == 'W':
+            f.write("{}\n".format(2))
+
+
+def rewrite_labels_to_annot(dataset_path, target_root, plot=False):
     board_size = 19
 
     examples, sources = collect_examples(dataset_path)
 
     prev_source = ''
     empty_position_counter = 0
+    labels = []
+    images_inds = []
+    example_names = []
+    sources_str = []
+    images_flat = []
 
     for example, source in tqdm.tqdm(zip(examples, sources)):
         source_name = source.split('/')[-1]
         example_name = example.split('/')[-1]
 
-        os.makedirs(os.path.join(yolo_path), exist_ok=True)
-        os.makedirs(os.path.join(yolo_path, source_name), exist_ok=True)
+        os.makedirs(os.path.join(target_root), exist_ok=True)
+        os.makedirs(os.path.join(target_root, source_name), exist_ok=True)
 
         annotation_path = example[:-4] + '.txt'
         with open(annotation_path) as f:
@@ -118,6 +112,7 @@ def rewrite_labels_to_annot(dataset_path, yolo_path, plot=False):
             mbe.resample = True
 
         img, x_grid, y_grid = mbe.read_board(img)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         stone_w = (x_grid[1] - x_grid[0])
         stone_h = stone_w
@@ -126,7 +121,7 @@ def rewrite_labels_to_annot(dataset_path, yolo_path, plot=False):
             fig, ax = plt.subplots(1)
             for row, y in enumerate(x_grid):
                 for col, x in enumerate(y_grid):
-                    img[y-1:y+1, x-1:x+1, :] = (255, 0, 0)
+                    img[y-1:y+1, x-1:x+1] = 0
                     if annotation[col*board_size + row] == 'W' or annotation[col*board_size + row] == 'B':
                         rect = patches.Rectangle((x-stone_w/2, y-stone_h*1.1/2), stone_w, stone_h, linewidth=1,
                                                  edgecolor='r', facecolor='none')
@@ -137,27 +132,37 @@ def rewrite_labels_to_annot(dataset_path, yolo_path, plot=False):
         i = 0
         for row, x in enumerate(x_grid):
             for col, y in enumerate(y_grid):
-                name_ann = os.path.join(yolo_path, source_name, f'{example_name[:-4]}_{i}.txt')
-                name_img = os.path.join(yolo_path, source_name, f'{example_name[:-4]}_{i}.jpg')
+                # write_to_imgs(target_root, source_name, example_name, img, annotation, row, col, board_size)
+                #
+                # name_ann = os.path.join(target_root, source_name, f'{example_name[:-4]}_{i}.txt')
+                # name_img = os.path.join(target_root, source_name, f'{example_name[:-4]}_{i}.jpg')
 
                 # save image
-                cropped = crop_stone(img, x, y)
-                if cropped.shape[0] > 0 and cropped.shape[1] > 0 :
-                    cv2.imwrite(name_img, cropped)
-                else:
-                    raise ValueError()
+                cropped = crop_stone(img, x, y, x_margin=X_MARGIN, y_margin=Y_MARGIN)
+                assert cropped.shape[0] > 0 and cropped.shape[1] > 0, "cropping failed"
 
-                # save label
-                with open(name_ann, 'w') as f:
-                    cl = annotation[row*board_size + col]
-                    if cl == '.':
-                        empty_position_counter += 1
-                        f.write("{}\n".format(0))
-                    if cl == 'B':
-                        f.write("{}\n".format(1))
-                    if cl == 'W':
-                        f.write("{}\n".format(2))
+                cl = class_mapping[annotation[row * board_size + col]]
+                cropped_flat = cropped.reshape(-1).astype(np.uint8)
+
+                images_flat.append(cropped_flat)
+                labels.append(cl)
+                images_inds.append(i)
+                sources_str.append(source_name)
+
                 i += 1
+
+    print('saving...')
+    columns = [str(i) for i in range(X_MARGIN*Y_MARGIN*2*2)]
+    df = pd.DataFrame(images_flat, columns=columns)
+    df['label'] = labels
+    df['image_ind'] = images_inds
+    df['source'] = sources_str
+    df.to_csv('data.csv')
+
+    data = pd.read_csv('data.csv')
+    imgs = data[[str(i) for i in range(X_MARGIN*Y_MARGIN*2*2)]].values
+    plt.imshow(imgs[150].reshape(X_MARGIN*2,Y_MARGIN*2))
+    plt.show()
 
 
 def create_split(yolo_path):
@@ -175,8 +180,8 @@ def create_split(yolo_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--images_path")
-    parser.add_argument("--yolo_path")
+    parser.add_argument("--target_root")
     args = parser.parse_args()
 
-    rewrite_labels_to_annot(args.images_path, args.yolo_path, plot=False)
-    create_split(args.yolo_path)
+    rewrite_labels_to_annot(args.images_path, args.target_root, plot=False)
+    # create_split(args.target_root)

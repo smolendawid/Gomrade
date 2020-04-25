@@ -36,6 +36,7 @@ if __name__ == '__main__':
 
         config = {
             'board_extractor_state': None,
+            'board_size': int(args.board_size),
         }
 
         bsc = ManualBoardExtractor()
