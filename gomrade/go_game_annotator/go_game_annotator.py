@@ -6,12 +6,14 @@ import yaml
 import os
 import numpy as np
 
-from gomrade.classifiers.validate_full_images import collect_examples
-from gomrade.classifiers.manual_models import ManualBoardExtractor, ManualBoardStateClassifier
 from gomrade.classifiers.keras_model import KerasModel
+from gomrade.classifiers.manual_models import ManualBoardExtractor
 from gomrade.state_utils import project_stones_state, write_pretty_state, create_pretty_state
 from gomrade.transformations import order_points
 from gomrade.images_utils import VideoCaptureFrameMock
+from gomrade.common import collect_examples
+
+MODEL_PATH = '/Users/dasm/projects/Gomrade/data/go_model.h5'
 
 
 class ImageClickerChange:
@@ -181,7 +183,7 @@ if __name__ == '__main__':
         cap = VideoCaptureFrameMock(img)
         mbe = ManualBoardExtractor(resample=True)
         mbe.fit(config=config, cap=cap)
-        bsc = KerasModel('/Users/dasm/projects/Gomrade/data/go_model.h5')
+        bsc = KerasModel(MODEL_PATH)
         # bsc = ManualBoardStateClassifier()
 
         bsc.fit(config=config, cap=cap)

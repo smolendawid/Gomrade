@@ -17,12 +17,13 @@ PTPXL = 9
 
 
 class ImageClicker:
-    def __init__(self, clicks_num=None):
+    def __init__(self, clicks_num=None, draw_line=False):
         """ object for collecting the clicks on image
         If clicks_num == None it saves points until 'q' is clicked"""
 
         self.pts_clicks = []
         self.clicks_num = clicks_num
+        self.draw_line = draw_line
 
     def _click_event(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -37,21 +38,30 @@ class ImageClicker:
 
         cv2.namedWindow(image_title)
         cv2.setMouseCallback(image_title, self._click_event)
+        _, frame = obj.read()
+        clear_frame = frame.copy()
 
         while True:
             _, frame = obj.read()
 
             # display the image and wait for a keypress
             cv2.imshow(image_title, frame)
+            if cv2.waitKey(33) == ord('r'):
+                self.pts_clicks = []
+                obj.frame = clear_frame
             if cv2.waitKey(33) == ord('q'):
                 cv2.destroyWindow(image_title)
                 break
             for pt in self.pts_clicks:
-                cv2.circle(frame,(pt[0], pt[1]), 5, (0,255,0), -1)
+                cv2.circle(frame, (pt[0], pt[1]), 5, (0, 255,0), -1)
+            if len(self.pts_clicks) > 1:
+                if self.draw_line:
+                    for point1, point2 in zip(self.pts_clicks[:-1], self.pts_clicks[1:]):
+                        cv2.line(frame, point1, point2, [0, 255, 0], 1)
 
-            if len(self.pts_clicks) == self.clicks_num:
-                cv2.destroyWindow(image_title)
-                break
+            # if len(self.pts_clicks) == self.clicks_num:
+            #     cv2.destroyWindow(image_title)
+            #     break
         return self.pts_clicks
 
 
@@ -151,14 +161,15 @@ class ManualBoardExtractor(GomradeModel):
         diff = (abs(pts_clicks[1][0] - pts_clicks[2][0]) + abs(pts_clicks[0][0] - pts_clicks[3][0]))
         added_width_down = int(max_width / board_size / 2)
         added_width_up = int(max_width / board_size / 2) - round(diff / board_size)
-        added_height = int(max_height / board_size / 2)
+        added_height_up = int(max_height / board_size / 2)
+        added_height_down = int(max_height / board_size / 2)
         # added_width_up = 0
         # added_width_down = 0
         # added_height = 0
-        pts_clicks[0][1] -= added_height
-        pts_clicks[1][1] -= added_height
-        pts_clicks[2][1] += added_height
-        pts_clicks[3][1] += added_height
+        pts_clicks[0][1] -= added_height_up
+        pts_clicks[1][1] -= added_height_up
+        pts_clicks[2][1] += added_height_down
+        pts_clicks[3][1] += added_height_down
         pts_clicks[0][0] -= added_width_up
         pts_clicks[1][0] += added_width_up
         pts_clicks[2][0] += added_width_down
@@ -166,7 +177,7 @@ class ManualBoardExtractor(GomradeModel):
 
         M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
 
-        return pts_clicks, M, max_width, max_height
+        return pts_clicks, M, max_width, max_height, added_width_down, added_height_down
 
     def dump(self, exp_dir):
         with open(os.path.join(exp_dir, 'board_extractor_state.yml'), 'w') as f:
@@ -179,7 +190,7 @@ class ManualBoardExtractor(GomradeModel):
         if config['board_extractor_state'] is not None:
             pts_clicks = self._load_from_state(config['board_extractor_state'])['pts_clicks']
         else:
-            clicker = ImageClicker(clicks_num=4)
+            clicker = ImageClicker(clicks_num=4, draw_line=True)
             pts_clicks = clicker.get_points_of_interest(cap, image_title='Click corners: left upper, right upper, '
                                                                          'right bottom, left bottom')
 
@@ -187,7 +198,7 @@ class ManualBoardExtractor(GomradeModel):
         M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
 
         if self.enlarge:
-            pts_clicks, M, max_width, max_height = self._enlarge_roi(pts_clicks,
+            pts_clicks, M, max_width, max_height, added_width_down, added_height = self._enlarge_roi(pts_clicks,
                                                                      max_width=max_width, max_height=max_height)
         self.M = M
         self.max_width = max_width
@@ -200,8 +211,9 @@ class ManualBoardExtractor(GomradeModel):
         self.height = transformed_frame.shape[1]
 
         if self.resample:
-            x_grid = np.floor(np.linspace(0, 320, config['board_size'])).astype(int)
-            y_grid = np.floor(np.linspace(0, 320, config['board_size'])).astype(int)
+            diff = 320/(config['board_size'] + 1)/2
+            x_grid = np.floor(np.linspace(diff, 320-diff, config['board_size'])).astype(int)
+            y_grid = np.floor(np.linspace(diff, 320-diff, config['board_size'])).astype(int)
         else:
             x_grid = np.floor(np.linspace(0, self.width - 1, config['board_size'])).astype(int)
             y_grid = np.floor(np.linspace(0, self.height - 1, config['board_size'])).astype(int)
