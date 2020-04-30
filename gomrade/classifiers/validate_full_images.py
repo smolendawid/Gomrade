@@ -33,8 +33,8 @@ def run_fold(train, valid):
     predictions = []
     references = []
 
-    classifier = KerasModel('/Users/dasm/projects/Gomrade/data/go_model_mlp.h5')
-    classifier.fit(config=None, cap=None)
+    # classifier = KerasModel('/Users/dasm/projects/Gomrade/data/go_model.h5')
+    # classifier.fit(config=None, cap=None)
 
     for ex in valid:
         image = cv2.imread(ex[0])
@@ -53,7 +53,8 @@ def run_fold(train, valid):
         _, frame = cap.read()
         frame, x_grid, y_grid = mbe.read_board(frame, debug=False)
 
-        # classifier = ManualBoardStateClassifier()
+        classifier = ManualBoardStateClassifier()
+        classifier.fit(config=config, cap=cap)
         stones_state, frame = classifier.read_board(frame, x_grid, y_grid, debug=False)
         stones_state = "".join(stones_state)
 
