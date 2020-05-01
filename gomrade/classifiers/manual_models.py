@@ -14,6 +14,7 @@ NUM_BLACK_POINTS = 2
 NUM_WHITE_POINTS = 2
 NUM_BOARD_POINTS = 6
 PTPXL = 9
+RESAMPLE = 320
 
 
 class ImageClicker:
@@ -65,7 +66,7 @@ class ImageClicker:
         return self.pts_clicks
 
 
-class ManualBoardStateClassifier():
+class ManualBoardStateClassifier:
     def __init__(self):
         self.black_colors = []
         self.white_colors = []
@@ -159,10 +160,10 @@ class ManualBoardExtractor(GomradeModel):
 
     def _enlarge_roi(self, pts_clicks, max_width, max_height, board_size=19):
         diff = (abs(pts_clicks[1][0] - pts_clicks[2][0]) + abs(pts_clicks[0][0] - pts_clicks[3][0]))
-        added_width_down = int(max_width / board_size / 2)
-        added_width_up = int(max_width / board_size / 2) - round(diff / board_size)
-        added_height_up = int(max_height / board_size / 2)
-        added_height_down = int(max_height / board_size / 2)
+        added_width_down = int(max_width / board_size)
+        added_width_up = int(max_width / board_size) - round(diff / board_size)
+        added_height_up = int(max_height / board_size) - round(diff / board_size)
+        added_height_down = int(max_height / board_size)
         # added_width_up = 0
         # added_width_down = 0
         # added_height = 0
@@ -211,9 +212,9 @@ class ManualBoardExtractor(GomradeModel):
         self.height = transformed_frame.shape[1]
 
         if self.resample:
-            diff = 320/(config['board_size'] + 1)/2
-            x_grid = np.floor(np.linspace(diff, 320-diff, config['board_size'])).astype(int)
-            y_grid = np.floor(np.linspace(diff, 320-diff, config['board_size'])).astype(int)
+            diff = RESAMPLE/(config['board_size'] + 1)
+            x_grid = np.floor(np.linspace(diff, RESAMPLE-diff, config['board_size'])).astype(int)
+            y_grid = np.floor(np.linspace(diff, RESAMPLE-diff, config['board_size'])).astype(int)
         else:
             x_grid = np.floor(np.linspace(0, self.width - 1, config['board_size'])).astype(int)
             y_grid = np.floor(np.linspace(0, self.height - 1, config['board_size'])).astype(int)
@@ -224,5 +225,5 @@ class ManualBoardExtractor(GomradeModel):
         # compute the perspective transform matrix and then apply it
         frame = cv2.warpPerspective(frame, self.M, (self.max_width, self.max_height))
         if self.resample:
-            frame = cv2.resize(frame, dsize=(320, 320), interpolation=cv2.INTER_LINEAR)
+            frame = cv2.resize(frame, dsize=(RESAMPLE, RESAMPLE), interpolation=cv2.INTER_LINEAR)
         return frame, self.x_grid, self.y_grid

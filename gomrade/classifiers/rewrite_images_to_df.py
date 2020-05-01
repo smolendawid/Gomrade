@@ -53,39 +53,39 @@ def rewrite_labels_to_annot(dataset_path, target_root, plot=False):
             mbe.fit(config=config, cap=cap)
             mbe.resample = True
 
-            img, x_grid, y_grid = mbe.read_board(img)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img, x_grid, y_grid = mbe.read_board(img)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-            stone_w = (x_grid[1] - x_grid[0])
-            stone_h = stone_w
+        stone_w = (x_grid[1] - x_grid[0])
+        stone_h = stone_w
 
-            if plot:
-                fig, ax = plt.subplots(1)
-                for row, x in enumerate(x_grid):
-                    for col, y in enumerate(y_grid):
-                        img[x-1:x+1, y-1:y+1] = 0
-                        if annotation[col*board_size + row] == 'W' or annotation[col*board_size + row] == 'B':
-                            rect = patches.Rectangle((x-stone_w/2, y-stone_h*1.1/2), stone_w, stone_h, linewidth=1,
-                                                     edgecolor='r', facecolor='none')
-                            ax.add_patch(rect)
-                ax.imshow(img)
-
-                plt.show(block=False)
-            i = 0
+        if plot:
+            fig, ax = plt.subplots(1)
             for row, x in enumerate(x_grid):
                 for col, y in enumerate(y_grid):
-                    cropped = crop_stone(img, x, y, x_margin=X_MARGIN, y_margin=Y_MARGIN)
-                    assert cropped.shape[0] > 0 and cropped.shape[1] > 0, "cropping failed"
+                    img[x-1:x+1, y-1:y+1] = 0
+                    if annotation[col*board_size + row] == 'W' or annotation[col*board_size + row] == 'B':
+                        rect = patches.Rectangle((x-stone_w/2, y-stone_h*1.1/2), stone_w, stone_h, linewidth=1,
+                                                 edgecolor='r', facecolor='none')
+                        ax.add_patch(rect)
+            ax.imshow(img)
 
-                    cl = class_mapping[annotation[row * board_size + col]]
-                    cropped_flat = cropped.reshape(-1).astype(np.uint8)
-                    images_flat.append(cropped_flat)
-                    labels.append(cl)
-                    images_inds.append(i)
-                    sources_str.append(source_name)
-                    example_names.append(example_name)
+            plt.show(block=False)
+        i = 0
+        for row, x in enumerate(x_grid):
+            for col, y in enumerate(y_grid):
+                cropped = crop_stone(img, x, y, x_margin=X_MARGIN, y_margin=Y_MARGIN)
+                assert cropped.shape[0] > 0 and cropped.shape[1] > 0, "cropping failed"
 
-                    i += 1
+                cl = class_mapping[annotation[row * board_size + col]]
+                cropped_flat = cropped.reshape(-1).astype(np.uint8)
+                images_flat.append(cropped_flat)
+                labels.append(cl)
+                images_inds.append(i)
+                sources_str.append(source_name)
+                example_names.append(example_name)
+
+                i += 1
         prev_source = source
 
     print('saving...')
@@ -99,8 +99,8 @@ def rewrite_labels_to_annot(dataset_path, target_root, plot=False):
     df.to_csv(os.path.join(target_root, 'data.csv'))
 
     data = pd.read_csv(os.path.join(target_root, 'data.csv'))
-    imgs = data[[str(i) for i in range(X_MARGIN*Y_MARGIN*2*2)]].values
-    plt.imshow(imgs[150].reshape(X_MARGIN*2,Y_MARGIN*2))
+    imgs = data[columns_img].values
+    plt.imshow(imgs[150].reshape(X_MARGIN*2, Y_MARGIN*2))
     plt.show()
 
 
@@ -122,5 +122,5 @@ if __name__ == '__main__':
     parser.add_argument("--target_root")
     args = parser.parse_args()
 
-    rewrite_labels_to_annot(args.images_path, args.target_root, plot=True)
+    rewrite_labels_to_annot(args.images_path, args.target_root, plot=False)
     # create_split(args.target_root)
