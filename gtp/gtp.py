@@ -24,7 +24,7 @@ def gtp_list(l):
 
 def gtp_color(color):
     # an arbitrary choice amongst a number of possibilities
-    return {'black': "B", 'white': "W"}[color]
+    return {'b': "B", 'w': "W"}[color]
 
 
 def gtp_vertex(vertex):

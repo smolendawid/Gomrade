@@ -51,19 +51,21 @@ def crop_stone(image, x, y, x_margin=16, y_margin=16):
 
 
 class KerasModel:
-    def __init__(self, path=None):
+    def __init__(self, model_path=None):
         self.model = None
-        if path is not None:
-            self.model = self._load_from_state(path)
+        if model_path is not None:
+            self.model = self._load_from_state(model_path)
 
-    def _load_from_state(self, path):
+    def _load_from_state(self, model_path):
         with tf.device('/cpu:0'):
-            return keras.models.load_model(path,  custom_objects={"softmax_v2": tf.nn.softmax})
+            return keras.models.load_model(model_path,  custom_objects={"softmax_v2": tf.nn.softmax})
 
     def dump(self, exp_dir):
-        raise NotImplementedError()
+        pass
 
     def fit(self, config, cap):
+        if config is not None:
+            self.model = self._load_from_state(model_path=config['model_path'])
 
         return self
 

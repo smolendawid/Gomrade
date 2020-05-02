@@ -1,7 +1,7 @@
 import abc
 
 
-class GomradeModel(abc.ABC):
+class GomradeExtractor(abc.ABC):
     @abc.abstractmethod
     def fit(self, config, cap):
         pass
