@@ -86,8 +86,8 @@ class ManualBoardExtractor(GomradeExtractor):
         return data
 
     def _enlarge_roi(self, pts_clicks, max_width, max_height, board_size=19):
-        pts_clicks = [list(pt) for pt in pts_clicks]
-        diff = (abs(pts_clicks[1][0] - pts_clicks[2][0]) + abs(pts_clicks[0][0] - pts_clicks[3][0]))
+        enlarged_pts = [list(pt) for pt in pts_clicks]
+        diff = (abs(enlarged_pts[1][0] - enlarged_pts[2][0]) + abs(enlarged_pts[0][0] - enlarged_pts[3][0]))
         added_width_down = int(max_width / board_size)
         added_width_up = int(max_width / board_size) - round(diff / board_size)
         added_height_up = int(max_height / board_size) - round(diff / board_size)
@@ -95,25 +95,41 @@ class ManualBoardExtractor(GomradeExtractor):
         # added_width_up = 0
         # added_width_down = 0
         # added_height = 0
-        pts_clicks[0][1] -= added_height_up
-        pts_clicks[1][1] -= added_height_up
-        pts_clicks[2][1] += added_height_down
-        pts_clicks[3][1] += added_height_down
-        pts_clicks[0][0] -= added_width_up
-        pts_clicks[1][0] += added_width_up
-        pts_clicks[2][0] += added_width_down
-        pts_clicks[3][0] -= added_width_down
+        enlarged_pts[0][1] -= added_height_up
+        enlarged_pts[1][1] -= added_height_up
+        enlarged_pts[2][1] += added_height_down
+        enlarged_pts[3][1] += added_height_down
+        enlarged_pts[0][0] -= added_width_up
+        enlarged_pts[1][0] += added_width_up
+        enlarged_pts[2][0] += added_width_down
+        enlarged_pts[3][0] -= added_width_down
 
-        M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
-        pts_clicks = [tuple(pt) for pt in pts_clicks]
+        M, max_width, max_height = order_points(np.array(enlarged_pts).astype(np.float32))
 
-        return pts_clicks, M, max_width, max_height, added_width_down, added_height_down
+        return M, max_width, max_height, added_width_down, added_height_down
 
     def dump(self, exp_dir):
         with open(os.path.join(exp_dir, 'board_extractor_state.yml'), 'w') as f:
             serialized = dict((key, value) for key, value in self.__dict__.items())
             serialized['M'] = [list(float(f) for f in m) for m in serialized['M']]
             yaml.safe_dump(serialized, f)
+
+    def _calc_coordinates(self, frame, config):
+
+        transformed_frame, _, _ = self.read_board(frame)
+
+        self.width = transformed_frame.shape[0]
+        self.height = transformed_frame.shape[1]
+
+        if self.resample:
+            diff = RESAMPLE / (config['board_size'] + 1)
+            x_grid = np.floor(np.linspace(diff, RESAMPLE - diff, config['board_size'])).astype(int)
+            y_grid = np.floor(np.linspace(diff, RESAMPLE - diff, config['board_size'])).astype(int)
+        else:
+            x_grid = np.floor(np.linspace(0, self.width - 1, config['board_size'])).astype(int)
+            y_grid = np.floor(np.linspace(0, self.height - 1, config['board_size'])).astype(int)
+        self.x_grid = [int(x) for x in x_grid]
+        self.y_grid = [int(y) for y in y_grid]
 
     def fit(self, config, cap):
 
@@ -128,27 +144,15 @@ class ManualBoardExtractor(GomradeExtractor):
         M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
 
         if self.enlarge:
-            pts_clicks, M, max_width, max_height, added_width_down, added_height = self._enlarge_roi(pts_clicks,
-                                                                     max_width=max_width, max_height=max_height)
+            M, max_width, max_height, added_width_down, added_height = self._enlarge_roi(pts_clicks,
+                                                                       max_width=max_width, max_height=max_height)
+
         self.M = M
         self.max_width = max_width
         self.max_height = max_height
         self.pts_clicks = [list(p) for p in pts_clicks]
 
-        transformed_frame, _, _ = self.read_board(frame)
-
-        self.width = transformed_frame.shape[0]
-        self.height = transformed_frame.shape[1]
-
-        if self.resample:
-            diff = RESAMPLE/(config['board_size'] + 1)
-            x_grid = np.floor(np.linspace(diff, RESAMPLE-diff, config['board_size'])).astype(int)
-            y_grid = np.floor(np.linspace(diff, RESAMPLE-diff, config['board_size'])).astype(int)
-        else:
-            x_grid = np.floor(np.linspace(0, self.width - 1, config['board_size'])).astype(int)
-            y_grid = np.floor(np.linspace(0, self.height - 1, config['board_size'])).astype(int)
-        self.x_grid = [int(x) for x in x_grid]
-        self.y_grid = [int(y) for y in y_grid]
+        self._calc_coordinates(frame, config)
 
     def read_board(self, frame, debug=False):
         # compute the perspective transform matrix and then apply it
