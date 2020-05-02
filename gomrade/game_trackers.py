@@ -125,15 +125,14 @@ class SgfTranslator:
         root_node = self.game.get_root()
         root_node.set("KM", self.komi)
         self.curr_node = self.game.get_root()
-        # stones_state = [('.' * self.board_size * self.board_size, 'w')]
-        # self.gt.replay_position(stones_state)
 
     def _setup_state(self, stones_state):
+        """ Setup board when state is not understood with AW AB AE """
         blacks = []
         whites = []
         for row in range(self.board_size):
             for col in range(self.board_size):
-                c = stones_state[row*self.board_size + col]
+                c = stones_state[row*self.board_size + self.board_size - col - 1]
                 if c == '.':
                     continue
                 elif c == 'B':
@@ -141,12 +140,6 @@ class SgfTranslator:
                 elif c == 'W':
                     whites.append((row, col))
         self.curr_node.set_setup_stones(black=blacks, white=whites)
-
-    def vanilla_parse(self, stones_state):
-        """Temporary method. Interprets the state as is with AW AB and AE attributes"""
-        self.create_empty()
-        self._setup_state(stones_state)
-        self.save_game(self.path)
 
     def parse(self, stones_state):
         c, move = self.mr.replay_position(stones_state)
@@ -175,7 +168,7 @@ class SgfTranslator:
 
 
 class MoveRecognizer:
-    def __init__(self, size: int, playing='w'):
+    def __init__(self, size: int, playing='b'):
         """
         Interpret the status of the game, e.g. the character of the move.
         Moves that can be recognized are:
@@ -189,7 +182,7 @@ class MoveRecognizer:
         """
         self.raw_state_history = None
         self._task = None
-        self.played = Move(first_move=playing)
+        self.color_to_play = Move(first_move=playing)
         self.size = size
         self.raw_state_history = []
 
@@ -295,7 +288,7 @@ class MoveRecognizer:
         if is_undo:
             self.last_undo_ind = undo_ind
             self._task = Task.UNDO
-            self.played.c = color
+            self.color_to_play.c = color
         else:
             diff_new, diff_prev, diff_inds = self._diff(stones_state)
 
@@ -326,11 +319,11 @@ class MoveRecognizer:
         stones_state = project_stones_state(stones_state, flip=True, rotate=False)
 
         move = self._understand_task(stones_state)
-        curr_color = self.played.c
+        curr_color = self.color_to_play.c
 
         # if it's a first move
-        if move is not None:
-            self.played.switch()
+        if self.task != Task.UNDO and self.task != Task.FIRST_POSITION:
+            self.color_to_play.switch()
         self.raw_state_history.append((stones_state, curr_color))
 
         return curr_color, move

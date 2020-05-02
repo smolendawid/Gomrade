@@ -12,10 +12,11 @@ from gomrade.state_visualizer import StateVisualizer, show_board_with_grid
 from utils.dynamic_import import dynamic_import
 
 
-def setup_log():
+def setup_log(root='logs'):
+    os.makedirs(root, exist_ok=True)
     now = datetime.now()
     current_time = now.strftime("%y_%m_%d_%H_%M_%S")
-    exp_dir = f'logs/{current_time}'
+    exp_dir = os.path.join(root, f'{current_time}')
     os.mkdir(exp_dir)
 
     return exp_dir
@@ -45,14 +46,9 @@ def load_config():
     return yaml.load(open(args.config, 'r'))
 
 
-if __name__ == '__main__':
+def init_program(config, exp_dir, cap):
 
-    config = load_config()
-
-    exp_dir = setup_log()
     engine = setup_engine(config=config)
-
-    cap = cv2.VideoCapture(0)
 
     be = ManualBoardExtractor(enlarge=True, resample=True)
     be.fit(config=config, cap=cap)
@@ -65,11 +61,20 @@ if __name__ == '__main__':
     bsc = dynamic_import(config['board_state_classifier']['name'])()
     bsc.fit(config=config['board_state_classifier'], cap=cap)
 
-    be.dump(exp_dir=exp_dir)
-    bsc.dump(exp_dir=exp_dir)
-
     vis = StateVisualizer()
 
     gl = GomradeGame(config=config, exp_dir=exp_dir, engine=engine,
                      board_extractor=be, board_classifier=bsc, visualizer=vis)
+
+    return gl
+
+
+if __name__ == '__main__':
+
+    config = load_config()
+    exp_dir = setup_log()
+    cap = cv2.VideoCapture(0)
+
+    gl = init_program(config=config, exp_dir=exp_dir, cap=cap)
+
     gl.run(cap, debug=config['debug'])

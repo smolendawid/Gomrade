@@ -9,11 +9,11 @@ handicap: 0
 
 # Dynamics
 minimal_duration_time: 1
-move_acceptance_time: 2
-sleep_between_frames: 0
+move_acceptance_time: 1
+sleep_between_frames: 0.2
 
 # Images processing
-buffer_size: 4
+buffer_size: 1
 
 # Board understanding
 board_extractor:
@@ -32,9 +32,9 @@ engine_command: ["katago", "gtp",
 
 # Loading game parameters from previous games
 lastmove:
-board_extractor_state:
+#board_extractor_state:
 board_state_classifier_state:
-#board_extractor_state: data/board_extractor_state.yml
+board_extractor_state: data/sample_data/testing_sequence/board_extractor_state.yml
 #board_state_classifier_state: data/board_state_classifier_state.yml
 
 # Other

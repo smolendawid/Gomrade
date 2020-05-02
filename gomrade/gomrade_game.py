@@ -52,6 +52,7 @@ class GomradeGame:
         self.interpreter = TimeBoardStateInterpreter(config=config)
         self.sgf_translator = SgfTranslator(config['board_size'], komi=config['komi'], root_path=self.sgf_file_root)
 
+        self.sleep = config['sleep_between_frames']
         self.move = Move(first_move=config['ai_color'])
 
         self.image_ind = 0
@@ -91,7 +92,10 @@ class GomradeGame:
         # fill images buffer
         buf = fill_buffer(cap, self.buffer_size)
 
+        global_start = time.time()
+
         while True:
+            time.sleep(self.sleep)
             start = time.time()
 
             # Capture frame-by-frame
@@ -120,6 +124,9 @@ class GomradeGame:
                 self.move.switch()
                 self._execute_move(self.engine, stones_state)
             # print(time.time() - start)
+            if debug:
+                if time.time() - global_start > 100:
+                    break
 
         # todo unreachable code..
         cap.release()

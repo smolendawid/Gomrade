@@ -70,11 +70,15 @@ def test_undo_to_black():
         stones_state = list(toy_game[i].replace(' ', ''))
         gt.replay_position(stones_state)
 
-    stones_state  = list(toy_game[6].replace(' ', ''))
+    stones_state = list(toy_game[7].replace(' ', ''))
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
-    assert gt.played.c == 'b'
+    assert gt.color_to_play.c == 'b'
+
+    stones_state = list(toy_game[8].replace(' ', ''))
+    gt.replay_position(stones_state)
+    assert gt.color_to_play.c == 'w'
 
 
 def test_undo_to_white():
@@ -84,11 +88,11 @@ def test_undo_to_white():
         stones_state = list(toy_game[i].replace(' ', ''))
         gt.replay_position(stones_state)
 
-    stones_state  = list(toy_game[7].replace(' ', ''))
+    stones_state  = list(toy_game[6].replace(' ', ''))
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
-    assert gt.played.c == 'w'
+    assert gt.color_to_play.c == 'w'
 
 
 def test_undo_and_regular():
@@ -122,20 +126,25 @@ def test_many_added():
 
     stones_state = list(toy_game[0].replace(' ', ''))
     gt.replay_position(stones_state)
-
-    stones_state[0] = 'B'
-    stones_state[1] = 'B'
+    stones_state = list(toy_game[1].replace(' ', ''))
     gt.replay_position(stones_state)
-    assert gt.task == Task.MANY_ADDED
 
     stones_state[2] = 'W'
     stones_state[3] = 'W'
     gt.replay_position(stones_state)
     assert gt.task == Task.MANY_ADDED
+    assert gt.color_to_play.c == 'b'
+
+    stones_state[0] = 'B'
+    stones_state[1] = 'B'
+    gt.replay_position(stones_state)
+    assert gt.task == Task.MANY_ADDED
+    assert gt.color_to_play.c == 'w'
 
     stones_state[4] = 'W'
     stones_state[5] = 'B'
     gt.replay_position(stones_state)
+    assert gt.color_to_play.c == 'b'
 
     assert gt.task == Task.MANY_ADDED
 
