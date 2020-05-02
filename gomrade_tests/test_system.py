@@ -43,14 +43,16 @@ def test_system():
         assert freq != 0, "Each image should be used"
 
     for freq in cap.images_freqs:
-        assert freq > 5, "At least 5 frames should be processed for each state"
+        assert freq > 2, "At least 3 frames should be processed for each state"
 
     # Test output sgf files
     with open(os.path.join(exp_dir, 'game.sgf')) as f:
         sgf = f.read()
-    assert sgf == '(;FF[4]AB[dd][nq][pd][pp]AW[cp][do][dq][ee][ep][oe][oo]CA[UTF-8]DT[2020-05-02]' \
-                  'GM[1]KM[6.5]SZ[19];B[gp])'
+    assert '(;FF[4]AB[dd][nq][pd][pp]AW[cp][do][dq][ee][ep][oe][oo]CA[UTF-8]DT' in sgf
+    assert 'GM[1]KM[6.5]SZ[19];B[gp])' in sgf
+
     with open(os.path.join(exp_dir, 'game1.sgf')) as f:
         sgf = f.read()
-    assert sgf == '(;FF[4]CA[UTF-8]DT[2020-05-02]GM[1]KM[6.5]SZ[19];B[dp];W[do];B[pp];W[ep];B[pd];' \
-                  'W[cp];B[dd];W[dq];B[nq])'
+    assert '(;FF[4]CA[UTF-8]DT[2020-05-02]GM[1]KM[6.5]SZ[19];B[dp];W[do];B[pp];W[ep];B[pd];' in sgf
+    assert 'W[cp];B[dd];W[dq];B[nq])' in sgf
+
