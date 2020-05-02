@@ -65,12 +65,10 @@ At the moment I didn't decide to share the training dataset. You can find some d
 ### Code structure
 
 - gomrade - main program scripts
-  - 
   - go_game_annotator - tools for labeling. See README.md in `go_game_annotator/`
   - classifiers - classification algorithms. See README.md in `go_game_annotator/`
-- gomrade_tests - some tests, not ony unit tests
-- gomrade_tests - some tests, not ony unit tests
-
+- gomrade_tests - unit, integration and system tests
+- gtp - scripts for talking with gtp engine
 
 ### Complexity illustration
 
