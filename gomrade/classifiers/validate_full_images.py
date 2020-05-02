@@ -9,31 +9,10 @@ from sklearn.metrics import accuracy_score, f1_score, classification_report
 import numpy as np
 
 from gomrade.classifiers.manual_models import ManualBoardStateClassifier, ManualBoardExtractor
+from gomrade.classifiers.keras_model import KerasModel
+from gomrade.images_utils import VideoCaptureFrameMock
 from gomrade.state_utils import create_pretty_state
-from gomrade.transformations import order_points
-
-
-def collect_examples(images_path: str) -> [[]]:
-    """
-    :param images_path: Path to data main directory. Should have 2 dir levels - each game
-    should have images in its own dir
-    :return: filename, source name, list with board points
-    """
-    all_examples = []
-    all_sources = []
-
-    dirs = [os.path.join(images_path, d) for d in os.listdir(images_path)
-            if os.path.isdir(os.path.join(images_path, d))]
-
-    for d in dirs:
-        files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith('.png') or f.endswith('.jpg')]
-        files.sort()
-
-        for f in files:
-            all_examples.append(f)
-            all_sources.append(d)
-
-    return np.array(all_examples), np.array(all_sources)
+from gomrade.common import collect_examples
 
 
 def load_board_extractor_state(source):
@@ -53,19 +32,30 @@ def load_board_state_classifier_state(source):
 def run_fold(train, valid):
     predictions = []
     references = []
+
+    classifier = KerasModel('/Users/dasm/projects/Gomrade/data/go_model.h5')
+    classifier.fit(config=None, cap=None)
+
     for ex in valid:
         image = cv2.imread(ex[0])
         with open(ex[0][:-4] + '.txt') as f:
             reference = f.read().replace('\n', '').replace(' ', '')
-        pts_clicks = load_board_extractor_state(ex[1])
 
-        M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
-        image = cv2.warpPerspective(image, M, (max_width, max_height))
+        config = {
+            'board_extractor_state': os.path.join(ex[1], 'board_extractor_state.yml'),
+            'board_state_classifier_state': os.path.join(ex[1], 'board_state_classifier_state.yml'),
+            'board_size': 19,
+        }
+        cap = VideoCaptureFrameMock(image)
+        mbe = ManualBoardExtractor(resample=True)
+        mbe.fit(config=config, cap=cap)
 
-        mbc = ManualBoardStateClassifier(width=None, height=None)
-        config = {'board_state_classifier_state': os.path.join(ex[1], 'board_state_classifier_state.yml')}
-        mbc.fit(config=config, cap=None)
-        stones_state, _ = mbc.read_board(image)
+        _, frame = cap.read()
+        frame, x_grid, y_grid = mbe.read_board(frame, debug=False)
+
+        # classifier = ManualBoardStateClassifier()
+        # classifier.fit(config=config, cap=cap)
+        stones_state, frame = classifier.read_board(frame, x_grid, y_grid, debug=False)
         stones_state = "".join(stones_state)
 
         predictions.append(stones_state)
@@ -105,8 +95,8 @@ if __name__ == '__main__':
 
     cv = model_selection.LeaveOneGroupOut()
 
-    f1s_refs = []
-    f1s_preds = []
+    stones_refs = []
+    stones_preds = []
     all_elements = 0
     the_same = 0
     all_ex = 0
@@ -127,13 +117,13 @@ if __name__ == '__main__':
         the_same += sum(r == p for r, p in zip(ref, pred))
         all_ex += len(ref)
 
-        acc = sum(r == p for r, p in zip(ref, pred))/len(ref)
-        if acc == 1:
+        acc = int(sum(r == p for r, p in zip(ref, pred))/len(ref) * 100)
+        if acc == 100:
             full_sources_correct += 1
         sources_num += 1
 
-        f1s_refs.extend(ref_ind)
-        f1s_preds.extend(pred_ind)
+        stones_refs.extend(ref_ind)
+        stones_preds.extend(pred_ind)
 
         print("Accuracy: {}".format(acc))
         print(classification_report(ref_ind, pred_ind))
@@ -142,5 +132,5 @@ if __name__ == '__main__':
 
     print("All images to classify: {}".format(all_ex))
     print("All sources correct: {}".format(full_sources_correct/sources_num))
-    print("Accuracy: {}".format(the_same/all_ex))
-    print(classification_report(f1s_refs, f1s_preds))
+    print("Imaages accuracy: {}".format(the_same/all_ex))
+    print(classification_report(stones_refs, stones_preds, digits=5))

@@ -31,19 +31,36 @@ Run `gomrade/classifiers/train_validate.py` for training and testing your model.
 
 For full dataset:
 
-- 23 sources
-- 704 images
-- 254144 elements to classify
+- 39 sources
+- 1035 images
+- 359556 elements to classify
 
-For one-source-out:
+For one-source-out keras model:
 
 ```
-All images to classify: 704
-All sources correct: 0.4090909090909091
-Accuracy: 0.8011363636363636
+
+position acc 0.9944631088347662
+position std 0.013440826207001617
+test
               precision    recall  f1-score   support
 
-           0       1.00      0.99      0.99    219628
-           1       0.98      0.99      0.99     17448
-           2       0.91      0.99      0.95     17068
+           0    0.99823   0.99548   0.99685    296319
+           1    0.98055   0.99471   0.98758     31775
+           2    0.97602   0.98710   0.98153     31462
+
+    accuracy                        0.99468    359556
+   macro avg    0.98493   0.99243   0.98865    359556
+weighted avg    0.99472   0.99468   0.99469    359556
+
+train
+              precision    recall  f1-score   support
+
+           0    0.99971   0.99974   0.99972   6175440
+           1    0.99942   0.99933   0.99938   1317410
+           2    0.99885   0.99879   0.99882   1305268
+
+    accuracy                        0.99954   8798118
+   macro avg    0.99933   0.99929   0.99931   8798118
+weighted avg    0.99954   0.99954   0.99954   8798118
+
 ```

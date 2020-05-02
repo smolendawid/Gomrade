@@ -9,7 +9,7 @@ def test_regular_game():
     sgf_translator = SgfTranslator(board_size=9, komi=0.5, root_path=sgf_file_root)
 
     sgf_translator.create_empty()
-    for i in range(12):
+    for i in range(13):
         stones_state = list(toy_game[i].replace(' ', ''))
         task = sgf_translator.parse(stones_state)
 
@@ -23,7 +23,7 @@ def test_error_game():
     sgf_translator = SgfTranslator(board_size=9, komi=0.5, root_path=sgf_file_root)
 
     sgf_translator.create_empty()
-    for i in range(12):
+    for i in range(13):
         stones_state = list(toy_game[i].replace(' ', ''))
         task = sgf_translator.parse(stones_state)
 
@@ -78,11 +78,11 @@ def test_undo():
     sgf_translator = SgfTranslator(board_size=9, komi=0.5, root_path=sgf_file_root)
 
     sgf_translator.create_empty()
-    for i in range(12):
+    for i in range(13):
         stones_state = list(toy_game[i].replace(' ', ''))
         task = sgf_translator.parse(stones_state)
 
-    stones_state = list(toy_game[5].replace(' ', ''))
+    stones_state = list(toy_game[6].replace(' ', ''))
     task = sgf_translator.parse(stones_state)
     assert task == Task.UNDO
 
@@ -114,11 +114,11 @@ def test_double_undo_to_main_sequence():
     sgf_translator = SgfTranslator(board_size=9, komi=0.5, root_path=sgf_file_root)
 
     sgf_translator.create_empty()
-    for i in range(12):
+    for i in range(13):
         stones_state = list(toy_game[i].replace(' ', ''))
         task = sgf_translator.parse(stones_state)
 
-    stones_state = list(toy_game[5].replace(' ', ''))
+    stones_state = list(toy_game[6].replace(' ', ''))
     task = sgf_translator.parse(stones_state)
     assert task == Task.UNDO
 
@@ -135,7 +135,7 @@ def test_double_undo_to_main_sequence():
     task = sgf_translator.parse(list(stones_state.replace(' ', '')))
     assert task == Task.REGULAR
 
-    stones_state = list(toy_game[4].replace(' ', ''))
+    stones_state = list(toy_game[5].replace(' ', ''))
     task = sgf_translator.parse(stones_state)
     assert task == Task.UNDO
 
@@ -171,12 +171,12 @@ def test_undo_to_previoius_tree():
     sgf_translator = SgfTranslator(board_size=9, komi=0.5, root_path=sgf_file_root)
 
     sgf_translator.create_empty()
-    for i in range(12):
+    for i in range(13):
         stones_state = list(toy_game[i].replace(' ', ''))
         task = sgf_translator.parse(stones_state)
 
     # Back to white move
-    stones_state = list(toy_game[5].replace(' ', ''))
+    stones_state = list(toy_game[6].replace(' ', ''))
     task = sgf_translator.parse(stones_state)
     assert task == Task.UNDO
 

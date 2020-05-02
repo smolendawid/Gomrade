@@ -83,6 +83,7 @@ class Task(Enum):
     MANY_ADDED = 4
     DISAPPEAR = 5
     OTHER_ERROR = 6
+    FIRST_POSITION = 7
 
 
 class SgfTranslator:
@@ -103,6 +104,7 @@ class SgfTranslator:
         self.sgf_ind = 0
         self.root_path = root_path
         self.path = os.path.join(self.root_path, 'game.sgf')
+        self.create_empty()
 
     def load_game(self, path):
         with open(path, 'r') as f:
@@ -149,15 +151,18 @@ class SgfTranslator:
     def parse(self, stones_state):
         c, move = self.mr.replay_position(stones_state)
 
-        if self.mr.task == Task.REGULAR or self.mr.task == Task.KILL:
+        if self.mr.task == Task.FIRST_POSITION:
+            return self.mr.task
+        elif self.mr.task == Task.REGULAR or self.mr.task == Task.KILL:
             self.curr_node = self.curr_node.new_child()
             self.curr_node.set_move(c, move)
             self.save_game(self.path)
 
         elif self.mr.task == Task.UNDO:
             # self.curr_node.reparent()
-            self.curr_node = self.nodes_history[self.mr.last_undo_ind - 1]
-            # self.curr_node = self.game.get_main_sequence()[self.gt.last_undo_ind]
+            if len(self.nodes_history) > 0:
+                self.curr_node = self.nodes_history[self.mr.last_undo_ind - 1]
+                # self.curr_node = self.game.get_main_sequence()[self.gt.last_undo_ind]
         else:
             self.sgf_ind += 1
             self.save_game(os.path.join(self.root_path, 'game{}.sgf'.format(self.sgf_ind)))
@@ -170,7 +175,7 @@ class SgfTranslator:
 
 
 class MoveRecognizer:
-    def __init__(self, size: int, playing='b'):
+    def __init__(self, size: int, playing='w'):
         """
         Interpret the status of the game, e.g. the character of the move.
         Moves that can be recognized are:
@@ -186,7 +191,7 @@ class MoveRecognizer:
         self._task = None
         self.played = Move(first_move=playing)
         self.size = size
-        self.raw_state_history = [('.' * size * size, playing)]
+        self.raw_state_history = []
 
         self.last_undo_ind = None
 
@@ -244,10 +249,11 @@ class MoveRecognizer:
         undo_ind = None
         for i, (prev, c) in enumerate(self.raw_state_history):
             if stones_state == prev:
-                is_undo = True
                 color = c
                 undo_ind = i
+                is_undo = True
                 break
+
         return is_undo, color, undo_ind
 
     def _disappears(self, counter):
@@ -267,7 +273,7 @@ class MoveRecognizer:
 
     def _diff(self, stones_state):
         """
-        :return: stones that appeard, stones that are replaced, indices of changes
+        :return: stones that appeared, stones that are replaced, indices of changes
         """
         prev_state, _ = self.raw_state_history[-1]
         diff = [(s, p, i) for i, (s, p) in enumerate(zip(stones_state, prev_state)) if s != p]
@@ -280,6 +286,10 @@ class MoveRecognizer:
 
         self._task = Task.NOT_SET
         move = None
+
+        if len(self.raw_state_history) == 0:
+            self._task = Task.FIRST_POSITION
+            return move
 
         is_undo, color, undo_ind = self._is_undo(stones_state)
         if is_undo:
@@ -318,7 +328,9 @@ class MoveRecognizer:
         move = self._understand_task(stones_state)
         curr_color = self.played.c
 
-        self.played.switch()
+        # if it's a first move
+        if move is not None:
+            self.played.switch()
         self.raw_state_history.append((stones_state, curr_color))
 
         return curr_color, move

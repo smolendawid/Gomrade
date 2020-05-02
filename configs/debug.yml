@@ -1,7 +1,7 @@
 # Game
 board_size: 19
 komi: 6.5
-ai_color: 'white'
+ai_color: 'w'
 to_move: 'black' # first that plays
 black_captures: 0
 white_captures: 0
@@ -18,8 +18,9 @@ buffer_size: 4
 board_extractor:
   name: gomrade.classifiers.manual_models:ManualBoardExtractor
 board_state_classifier:
-  name: gomrade.classifiers.manual_models:ManualBoardStateClassifier
+  name: gomrade.classifiers.keras_model:KerasModel
   num_neighbours: 5
+  model_path: '/Users/dasm/projects/Gomrade/data/go_model.h5'
 
 
 # Engine
@@ -30,10 +31,10 @@ engine_command: ["katago", "gtp",
 
 # Loading game parameters from previous games
 lastmove:
-#board_extractor_state:
-#board_state_classifier_state:
-board_extractor_state: data/board_extractor_state.yml
-board_state_classifier_state: data/board_state_classifier_state.yml
+board_extractor_state:
+board_state_classifier_state:
+#board_extractor_state: data/board_extractor_state.yml
+#board_state_classifier_state: data/board_state_classifier_state.yml
 
 # Other
 debug: True

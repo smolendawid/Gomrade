@@ -12,3 +12,11 @@ class StateVisualizer:
 
     def plot_board(self, frame):
         raise NotImplementedError
+
+
+def show_board_with_grid(frame, x_grid, y_grid, m=3):
+    for i in x_grid:
+        for j in y_grid:
+            frame[i-m:i+m, j-m:j+m] = (0, 0, 0)
+    cv2.imshow('example board [click to continue]', frame)
+    cv2.waitKey(1)

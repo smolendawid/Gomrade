@@ -10,9 +10,15 @@ def test_regular_move():
 
     gt.replay_position(stones_state)
 
-    assert gt.task == Task.REGULAR
+    assert gt.task == Task.FIRST_POSITION
 
     stones_state = list(toy_game[1].replace(' ', ''))
+
+    gt.replay_position(stones_state)
+
+    assert gt.task == Task.REGULAR
+
+    stones_state = list(toy_game[2].replace(' ', ''))
 
     gt.replay_position(stones_state)
 
@@ -22,10 +28,10 @@ def test_regular_move():
 def test_kill():
     gt = MoveRecognizer(size=9)
 
-    stones_state = list(toy_game[8].replace(' ', ''))
+    stones_state = list(toy_game[9].replace(' ', ''))
     gt.replay_position(stones_state)
 
-    stones_state = list(toy_game[9].replace(' ', ''))
+    stones_state = list(toy_game[10].replace(' ', ''))
     gt.replay_position(stones_state)
 
     assert gt.task == Task.KILL
@@ -60,11 +66,11 @@ def test_kill():
 def test_undo_to_black():
     gt = MoveRecognizer(size=9)
 
-    for i in range(10):
+    for i in range(11):
         stones_state = list(toy_game[i].replace(' ', ''))
         gt.replay_position(stones_state)
 
-    stones_state  = list(toy_game[5].replace(' ', ''))
+    stones_state  = list(toy_game[6].replace(' ', ''))
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
@@ -74,11 +80,11 @@ def test_undo_to_black():
 def test_undo_to_white():
     gt = MoveRecognizer(size=9)
 
-    for i in range(10):
+    for i in range(11):
         stones_state = list(toy_game[i].replace(' ', ''))
         gt.replay_position(stones_state)
 
-    stones_state  = list(toy_game[6].replace(' ', ''))
+    stones_state  = list(toy_game[7].replace(' ', ''))
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
@@ -92,7 +98,7 @@ def test_undo_and_regular():
         stones_state = list(toy_game[i].replace(' ', ''))
         gt.replay_position(stones_state)
 
-    stones_state  = list(toy_game[5].replace(' ', ''))
+    stones_state  = list(toy_game[6].replace(' ', ''))
     gt.replay_position(stones_state)
 
     assert gt.task == Task.UNDO
