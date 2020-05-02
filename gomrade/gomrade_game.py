@@ -6,12 +6,11 @@ import warnings
 import logging
 # import simpleaudio as sa
 
-
 from gomrade.images_utils import avg_images_in_buffer, fill_buffer
 from gomrade.state_utils import save_game_state
 from gomrade.action_interpreters import TimeBoardStateInterpreter
 from gomrade.game_trackers import SgfTranslator, Task
-from gomrade.classifiers.gomrade_model import GomradeModel
+from gomrade.classifiers.gomrade_model import GomradeExtractor
 from gomrade.common import Move
 
 
@@ -27,8 +26,8 @@ def play_wav(m):
 
 
 class GomradeGame:
-    def __init__(self, config: dict, exp_dir: str, engine, board_extractor: GomradeModel,
-                 board_classifier: GomradeModel, visualizer):
+    def __init__(self, config: dict, exp_dir: str, engine, board_extractor: GomradeExtractor,
+                 board_classifier, visualizer):
         """
         The main class of the project. It uses objects to analyse crop board, classify it, and, considering defined
         logic, communicate with GTP engine.

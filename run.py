@@ -7,7 +7,8 @@ from datetime import datetime
 
 from gtp.talker import GTPFacade
 from gomrade.gomrade_game import GomradeGame
-from gomrade.state_visualizer import StateVisualizer
+from gomrade.classifiers.manual_models import ManualBoardExtractor
+from gomrade.state_visualizer import StateVisualizer, show_board_with_grid
 from utils.dynamic_import import dynamic_import
 
 
@@ -53,11 +54,16 @@ if __name__ == '__main__':
 
     cap = cv2.VideoCapture(0)
 
-    be = dynamic_import(config['board_extractor']['name'])()
+    be = ManualBoardExtractor(enlarge=True, resample=True)
     be.fit(config=config, cap=cap)
 
+    # Show example board
+    ret, frame = cap.read()
+    res, x_grid, y_grid = be.read_board(frame)
+    show_board_with_grid(res, x_grid, y_grid)
+
     bsc = dynamic_import(config['board_state_classifier']['name'])()
-    bsc.fit(config=config, cap=cap)
+    bsc.fit(config=config['board_state_classifier'], cap=cap)
 
     be.dump(exp_dir=exp_dir)
     bsc.dump(exp_dir=exp_dir)
