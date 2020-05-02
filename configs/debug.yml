@@ -38,4 +38,4 @@ board_state_classifier_state:
 #board_state_classifier_state: data/board_state_classifier_state.yml
 
 # Other
-debug: True
+debug: False

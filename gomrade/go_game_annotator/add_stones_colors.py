@@ -13,7 +13,7 @@ from gomrade.images_utils import VideoCaptureFrameMock
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--images_path")
+    parser.add_argument("--images_path", required=True)
     parser.add_argument("--board_size", default=19)
     args = parser.parse_args()
 

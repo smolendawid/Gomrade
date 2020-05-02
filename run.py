@@ -40,7 +40,7 @@ def setup_engine(config):
 
 def load_config():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default='configs/debug.yml')
+    parser.add_argument("--config", default='configs/config.yml')
     args = parser.parse_args()
 
     return yaml.load(open(args.config, 'r'))
@@ -59,7 +59,7 @@ def init_program(config, exp_dir, cap):
     show_board_with_grid(res, x_grid, y_grid)
 
     bsc = dynamic_import(config['board_state_classifier']['name'])()
-    bsc.fit(config=config['board_state_classifier'], cap=cap)
+    bsc.fit(config=config, cap=cap)
 
     vis = StateVisualizer()
 

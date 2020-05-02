@@ -153,7 +153,7 @@ def _load_params_for_source(img, board_extractor_state_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--images_path")
+    parser.add_argument("--images_path", required=True)
     parser.add_argument("--board_size", default=19)
     args = parser.parse_args()
 

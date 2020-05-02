@@ -65,7 +65,7 @@ class KerasModel:
 
     def fit(self, config, cap):
         if config is not None:
-            self.model = self._load_from_state(model_path=config['model_path'])
+            self.model = self._load_from_state(model_path=config['board_state_classifier']['model_path'])
 
         return self
 
