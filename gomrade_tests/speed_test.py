@@ -21,10 +21,12 @@ if __name__ == '__main__':
     mbe1 = ManualBoardExtractor(resample=True, enlarge=True)
     mbe2 = ManualBoardExtractor(resample=False, enlarge=False)
 
-    for exmple in examples:
-        direct = '/'.join(exmple.split('/')[:-1])
-        image = cv2.imread(exmple)
-        with open(exmple[:-4] + '.txt') as f:
+    for example in examples:
+        if 'testing_sequence' in example:
+            continue
+        direct = '/'.join(example.split('/')[:-1])
+        image = cv2.imread(example)
+        with open(example[:-4] + '.txt') as f:
             reference = f.read().replace('\n', '').replace(' ', '')
 
         config = {
@@ -35,7 +37,7 @@ if __name__ == '__main__':
         cap = VideoCaptureFrameMock(image)
         _, frame = cap.read()
 
-        cl1.fit(config=config, cap=cap)
+        cl1.fit(config=None, cap=cap)
         cl2.fit(config=config, cap=cap)
 
         # ====================================
