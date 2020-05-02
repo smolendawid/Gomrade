@@ -3,4 +3,6 @@ numpy
 opencv-python
 sgfmill
 pytest
+keras
+tensorflow
 # simpleaudio

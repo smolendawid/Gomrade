@@ -4,8 +4,8 @@ import yaml
 import os
 import numpy as np
 
-from gomrade.classifiers.train_validate import collect_examples
-from gomrade.classifiers.manual_models import ManualBoardStateClassifier
+from gomrade.classifiers.validate_full_images import collect_examples
+from gomrade.classifiers.manual_models import ManualBoardStateClassifier, ManualBoardExtractor
 from gomrade.transformations import order_points
 
 from gomrade.images_utils import VideoCaptureFrameMock
@@ -24,8 +24,8 @@ if __name__ == '__main__':
 
     for example, source in zip(examples, sources):
         if source == prev_source:
-            print("Skipping {}".format(source))
-            continue
+            if os.path.exists(os.path.join(source, 'board_state_classifier_state.yml')):
+                continue
 
         img = cv2.imread(example)
 
@@ -37,29 +37,29 @@ if __name__ == '__main__':
 
         print("Annotating {}".format(source))
 
-        with open(os.path.join(source, 'board_extractor_state.yml')) as f:
-            pts_clicks = yaml.load(f)['pts_clicks']
-
-        M, max_width, max_height = order_points(np.array(pts_clicks).astype(np.float32))
-
-        transformed_frame = cv2.warpPerspective(img, M, (max_width, max_height))
-        width = transformed_frame.shape[0]
-        height = transformed_frame.shape[1]
-
         config = {
+            'board_extractor_state': os.path.join(source, 'board_extractor_state.yml'),
             'board_state_classifier_state': None,
-            'buffer_size': 1,
             'board_size': 19,
+            'buffer_size': 3,
             'board_state_classifier': {
                 'num_neighbours': 5,
             }
         }
 
-        bsc = ManualBoardStateClassifier(width,  height)
+        cap = VideoCaptureFrameMock(img)
 
-        transformed_frame = VideoCaptureFrameMock(transformed_frame)
-        bsc.fit(config=config, cap=transformed_frame)
-        bsc.dump(exp_dir=source)
+        mbe = ManualBoardExtractor(resample=True)
+        mbe.fit(config=config, cap=cap)
+
+        _, frame = cap.read()
+        res, x_grid, y_grid = mbe.read_board(frame, debug=False)
+
+        bsc = ManualBoardStateClassifier()
+        bsc.fit(config=config, cap=cap)
+
+        if len(bsc.black_colors) != 0:
+            bsc.dump(exp_dir=source)
 
         prev_source = source
 

@@ -7,14 +7,16 @@ from datetime import datetime
 
 from gtp.talker import GTPFacade
 from gomrade.gomrade_game import GomradeGame
-from gomrade.state_visualizer import StateVisualizer
+from gomrade.classifiers.manual_models import ManualBoardExtractor
+from gomrade.state_visualizer import StateVisualizer, show_board_with_grid
 from utils.dynamic_import import dynamic_import
 
 
-def setup_log():
+def setup_log(root='logs'):
+    os.makedirs(root, exist_ok=True)
     now = datetime.now()
     current_time = now.strftime("%y_%m_%d_%H_%M_%S")
-    exp_dir = f'logs/{current_time}'
+    exp_dir = os.path.join(root, f'{current_time}')
     os.mkdir(exp_dir)
 
     return exp_dir
@@ -38,32 +40,41 @@ def setup_engine(config):
 
 def load_config():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default='configs/default.yml')
+    parser.add_argument("--config", default='configs/debug.yml')
     args = parser.parse_args()
 
     return yaml.load(open(args.config, 'r'))
 
 
-if __name__ == '__main__':
+def init_program(config, exp_dir, cap):
 
-    config = load_config()
-
-    exp_dir = setup_log()
     engine = setup_engine(config=config)
 
-    cap = cv2.VideoCapture(0)
+    be = ManualBoardExtractor(enlarge=True, resample=True)
+    be.fit(config=config, cap=cap)
 
-    be = dynamic_import(config['board_extractor']['name'])()
-    width, height = be.fit(config=config, cap=cap)
+    # Show example board
+    ret, frame = cap.read()
+    res, x_grid, y_grid = be.read_board(frame)
+    show_board_with_grid(res, x_grid, y_grid)
 
-    bsc = dynamic_import(config['board_state_classifier']['name'])(width, height)  # todo anyway to do it in less ugly?
-    bsc.fit(config=config, cap=cap)
-
-    be.dump(exp_dir=exp_dir)
-    bsc.dump(exp_dir=exp_dir)
+    bsc = dynamic_import(config['board_state_classifier']['name'])()
+    bsc.fit(config=config['board_state_classifier'], cap=cap)
 
     vis = StateVisualizer()
 
     gl = GomradeGame(config=config, exp_dir=exp_dir, engine=engine,
                      board_extractor=be, board_classifier=bsc, visualizer=vis)
+
+    return gl
+
+
+if __name__ == '__main__':
+
+    config = load_config()
+    exp_dir = setup_log()
+    cap = cv2.VideoCapture(0)
+
+    gl = init_program(config=config, exp_dir=exp_dir, cap=cap)
+
     gl.run(cap, debug=config['debug'])

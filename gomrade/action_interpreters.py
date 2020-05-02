@@ -39,9 +39,9 @@ class BoardStateInterpreter:
             self.num_of_the_diff += 1
 
         # print(num_of_the_same)
-        if color_to_play == 'white':
+        if color_to_play == 'w':
             tmp_limit = self.move_limit
-        elif color_to_play == 'black':
+        elif color_to_play == 'b':
             tmp_limit = self.accept_limit
         else:
             raise ValueError("Wrong color")
