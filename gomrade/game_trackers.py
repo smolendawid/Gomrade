@@ -145,6 +145,11 @@ class SgfTranslator:
         c, move = self.mr.replay_position(stones_state)
 
         if self.mr.task == Task.FIRST_POSITION:
+            if not all([s == '.' for s in stones_state]):
+                self.create_empty()
+                self._setup_state(stones_state)
+                self.save_game(self.path)
+
             return self.mr.task
         elif self.mr.task == Task.REGULAR or self.mr.task == Task.KILL:
             self.curr_node = self.curr_node.new_child()

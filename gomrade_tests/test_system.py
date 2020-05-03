@@ -50,5 +50,5 @@ def test_system():
 
     with open(os.path.join(exp_dir, 'game1.sgf')) as f:
         sgf = f.read()
-    assert '(;FF[4]CA[UTF-8]DT[2020-05-02]GM[1]KM[6.5]SZ[19];B[dp];W[do];B[pp];W[ep];B[pd];' in sgf
+    assert 'GM[1]KM[6.5]SZ[19];B[dp];W[do];B[pp];W[ep];B[pd];' in sgf
     assert 'W[cp];B[dd];W[dq];B[nq])' in sgf

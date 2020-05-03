@@ -289,3 +289,18 @@ def test_undo_to_previoius_tree():
 
     assert counter['('] == 5
     assert counter[')'] == 5
+
+
+def test_start_from_some_point():
+    sgf_file_root = '../gomrade_tests/'
+    sgf_translator = SgfTranslator(board_size=9, komi=0.5, root_path=sgf_file_root)
+
+    sgf_translator.create_empty()
+    for i in range(6, 13):
+        stones_state = list(toy_game[i].replace(' ', ''))
+        task = sgf_translator.parse(stones_state)
+
+    with open('../gomrade_tests/game.sgf') as f:
+        game_str = f.read()
+    assert 'AW' in game_str
+    assert 'AB' in game_str

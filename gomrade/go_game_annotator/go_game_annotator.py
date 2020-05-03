@@ -177,16 +177,16 @@ if __name__ == '__main__':
 
         config = {
             'board_extractor_state': os.path.join(source, 'board_extractor_state.yml'),
-            'board_state_classifier_state': os.path.join(source, 'board_state_classifier_state.yml'),
+            'board_state_classifier': os.path.join(source, 'board_state_classifier_state.yml'),
             'board_size': 19,
         }
         cap = VideoCaptureFrameMock(img)
-        mbe = ManualBoardExtractor(resample=True)
+        mbe = ManualBoardExtractor(resample=True, enlarge=True)
         mbe.fit(config=config, cap=cap)
         bsc = KerasModel(MODEL_PATH)
         # bsc = ManualBoardStateClassifier()
 
-        bsc.fit(config=config, cap=cap)
+        bsc.fit(config=None, cap=cap)
 
         _, frame = cap.read()
         res, x_grid, y_grid = mbe.read_board(frame, debug=False)
