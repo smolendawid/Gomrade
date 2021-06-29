@@ -11,10 +11,9 @@ as in the `data/sample_data/`
 
 ## Validation schemas  
 
-Two validation schemas are implemented:
+One validation schema is implemented:
 
-1. Cross-validation on images
-2. Cross-validation with one-source-out. 
+1. Cross-validation with one-source-out. 
 
 ## Metrics
 
@@ -25,7 +24,7 @@ in terms of field position (`black`, `white` and `empty`)
 
 Models should use the interfaces implemented in `gomrade/classifiers/gomrade_model.py`
 
-Run `gomrade/classifiers/train_validate.py` for training and testing your model.
+Run `gomrade/classifiers/validate_full_images.py` for training and testing your model.
 
 ## Status 
 
